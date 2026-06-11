@@ -1,0 +1,39 @@
+name: php-code-verifier
+
+run-name: Verify ${{ github.actor }} ${{ github.event_name }} on ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches: 
+      - '*'
+      - '!main'
+      - '!dev'
+
+jobs:
+  php-code-verifier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP with tools
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: friendsofphp/php-cs-fixer, squizlabs/php_codesniffer
+
+      - name: Check PHP syntax
+        run: find . -name "*.php" -not -path "./vendor/*" -not -path "./.git/*" -print0 | xargs -0 -n1 php -l
+
+      - name: Run PHP-CS-Fixer
+        run: php-cs-fixer fix --dry-run --diff
+
+      - name: Run PHPCS
+        run: phpcs --standard=phpcs.xml.dist
