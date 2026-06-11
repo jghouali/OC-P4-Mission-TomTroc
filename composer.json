@@ -6,5 +6,16 @@
         "phpunit/phpunit": "^13.2",
         "squizlabs/php_codesniffer": "^4.0",
         "friendsofphp/php-cs-fixer": "^3.95"
+    },
+    "autoload": {
+        "psr-4": {
+            "Green\\TomTroc\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Green\\TomTroc\\": "src/",
+            "Tests\\": "tests/"
+        }
     }
 }
