@@ -1,0 +1,26 @@
+name: verify-dev-pull-request
+run-name: Verify ${{ github.actor }} ${{ github.event_name }} on ${{ github.base_ref }}
+
+on:
+  pull_request:
+    branches: [dev]
+
+jobs:
+  is-ancestor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: git merge-base origin/dev ${{ github.head_ref }}
+        run: |
+          git fetch origin dev
+          if ! git merge-base --is-ancestor origin/dev HEAD; then
+            echo "This branch is not based on the latest dev branch."
+            echo "Run: git fetch origin && git rebase origin/dev"
+            exit 1
+          fi
+
+    
