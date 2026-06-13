@@ -26,6 +26,22 @@ The project structure is organized as follows:
 | /templates    | PHP view templates    |
 | /tests    | PHPUnit test files    |
 
+## Entities
+# Member Entity
+Properties :
+    private string $username;
+    private string $email;
+    private string $passwordHash;
+    private string $avatarPath;
+    private DateTime $createdAt;
+    private DateTime $updatedAt;
+    private int $notificationCount;
+    private MemberStatusEnum $status;
+
+has standard getter and setter 
+And a validatorField() method which check for properties format
+
+
 ## Development Tooling
 No external PHP libraries are used in the application itself.
 Composer dependencies are only used for CI, code quality checks, and unit testing.

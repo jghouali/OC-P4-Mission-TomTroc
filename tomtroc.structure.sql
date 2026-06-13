@@ -53,6 +53,7 @@ CREATE TABLE `members` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `status` enum('NOT-VALIDATED','VALIDATED') NOT NULL DEFAULT 'VALIDATED',
+  `notification_count` int(10) unsigned,
   PRIMARY KEY (`member_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `mail` (`mail`)
