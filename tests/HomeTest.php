@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
 use Green\TomTroc\Core\Http\Request;
 use Green\TomTroc\Core\Router\Router;
