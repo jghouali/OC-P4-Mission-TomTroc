@@ -404,7 +404,7 @@ class MessageEntityTest extends TestCase
                 break;
 
             default:
-                // Validate username and email
+                // Validate content
                 $message->$setter('1' . $$varName);
 
                 $this->assertSame('1' . $$varName, $message->$getter());

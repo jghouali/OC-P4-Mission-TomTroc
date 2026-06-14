@@ -29,26 +29,44 @@ The project structure is organized as follows:
 ## Entities
 # Member Entity
 Properties :
-    private string $username;
-    private string $email;
-    private string $passwordHash;
-    private string $avatarPath;
-    private DateTime $createdAt;
-    private DateTime $updatedAt;
-    private int $notificationCount;
-    private MemberStatusEnum $status;
+```
+private string $username;
+private string $email;
+private string $passwordHash;
+private string $avatarPath;
+private DateTime $createdAt;
+private DateTime $updatedAt;
+private int $notificationCount;
+private MemberStatusEnum $status;
+```
 
 has standard getter and setter 
 And a validatorField() method which check for properties format
 
 # Message Entity
 Properties :
-    private string $content;
-    private MessageStatusEnum $isRead;
-    private DateTime $sentAt;
-    private DateTime $modifiedAt;
-    private MemberEntity $fromMember;
-    private MemberEntity $toMember;
+```
+private string $content;
+private MessageStatusEnum $isRead;
+private DateTime $sentAt;
+private DateTime $modifiedAt;
+private MemberEntity $fromMember;
+private MemberEntity $toMember;
+```
+
+has standard getter and setter 
+And a validatorField() method which check for properties format
+
+# Book Entity
+Properties :
+```
+private string $title;
+private string $author;
+private string $imagePath;
+private string $description;
+private BookStatusEnum $availability;
+private MemberEntity $fromMember;
+```
 
 has standard getter and setter 
 And a validatorField() method which check for properties format
