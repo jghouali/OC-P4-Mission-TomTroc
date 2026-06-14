@@ -69,7 +69,7 @@ DROP TABLE IF EXISTS `messages`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `messages` (
   `message_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `message` text NOT NULL,
+  `content` text NOT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `sent_at` datetime NOT NULL DEFAULT current_timestamp(),
   `modified_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

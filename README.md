@@ -41,6 +41,18 @@ Properties :
 has standard getter and setter 
 And a validatorField() method which check for properties format
 
+# Message Entity
+Properties :
+    private string $content;
+    private MessageStatusEnum $isRead;
+    private DateTime $sentAt;
+    private DateTime $modifiedAt;
+    private MemberEntity $fromMember;
+    private MemberEntity $toMember;
+
+has standard getter and setter 
+And a validatorField() method which check for properties format
+
 
 ## Development Tooling
 No external PHP libraries are used in the application itself.
