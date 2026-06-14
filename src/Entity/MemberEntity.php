@@ -120,6 +120,7 @@ class MemberEntity
         if ($validated) {
             return $field;
         } else {
+            $message = !isset($message) ? 'Unknown error' : $message;
             throw new RuntimeException("Invalid $property : $message");
         }
     }
