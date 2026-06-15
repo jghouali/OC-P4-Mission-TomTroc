@@ -263,7 +263,7 @@ class MessageEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Content must only contain character in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/content must only contain character in a-z, A-Z, 0-9, _ or -/');
 
         $message->setContent('Bad+Username');
     }
@@ -289,7 +289,7 @@ class MessageEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Sent Date must be before now and afer 110 years ago/');
+        $this->expectExceptionMessageMatches('/sentAt must be before now and afer 110 years ago/');
 
         $message->setSentAt(date_create('200 year ago'));
     }
@@ -315,7 +315,7 @@ class MessageEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Modified Date must be before now and afer 110 years ago/');
+        $this->expectExceptionMessageMatches('/modifiedAt must be before now and afer 110 years ago/');
 
         $message->setModifiedAt(date_create('200 year ago'));
     }

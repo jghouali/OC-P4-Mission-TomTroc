@@ -244,7 +244,7 @@ class BookEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Title must only contain character in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/title must only contain character in a-z, A-Z, 0-9, _ or -/');
 
         $book->setTitle('Bad+Username');
     }
@@ -270,7 +270,7 @@ class BookEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Author must only contain character in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/author must only contain character in a-z, A-Z, 0-9, _ or -/');
 
         $book->setAuthor('Bad+Author');
     }
@@ -296,7 +296,7 @@ class BookEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Book image path must be stored in \/upload\/books\/,' .
+        $this->expectExceptionMessageMatches('/imagePath must be stored in \/upload\/books\/,' .
             ' contain only a-z, A-Z or 0-9, and have .png extension/');
 
         $book->setImagePath('Bad+ImagePath');
@@ -323,7 +323,7 @@ class BookEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Description must only contain character in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/description must only contain character in a-z, A-Z, 0-9, _ or -/');
 
         $book->setDescription('Bad+Description');
     }
