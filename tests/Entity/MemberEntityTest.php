@@ -255,7 +255,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Username must only contain character in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/username must only contain character in a-z, A-Z, 0-9, _ or -/');
 
         $member->setUserName('Bad+Username');
     }
@@ -285,7 +285,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Email is not a valid email/');
+        $this->expectExceptionMessageMatches('/email is not a valid email/');
 
         $member->setEmail('Bad@@.com');
     }
@@ -315,7 +315,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Password Hash is not a valid bcrypt hash/');
+        $this->expectExceptionMessageMatches('/passwordHash is not a valid bcrypt hash/');
 
         $member->setPasswordHash('Bad+Password');
     }
@@ -345,7 +345,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Avatar must be stored in \/upload\/avatars\/,' .
+        $this->expectExceptionMessageMatches('/avatarPath must be stored in \/upload\/avatars\/,' .
             ' contain only a-z, A-Z or 0-9, and have .png extension/');
 
         $member->setAvatarPath('/../../../passwd');
@@ -376,7 +376,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Creation Date must be before now and afer 110 years ago/');
+        $this->expectExceptionMessageMatches('/createdAt must be before now and afer 110 years ago/');
 
         $member->setCreatedAt(new DateTime('200 year ago'));
     }
@@ -406,7 +406,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Updated Date must be before now and afer 110 years ago/');
+        $this->expectExceptionMessageMatches('/updatedAt must be before now and afer 110 years ago/');
 
         $member->setUpdatedAt(new DateTime('200 year ago'));
     }
@@ -436,7 +436,7 @@ class MemberEntityTest extends TestCase
 
         // We expect a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/Notification Count must be >= 0/');
+        $this->expectExceptionMessageMatches('/notificationCount must be >= 0/');
 
         $member->setNotificationCount(-2);
     }
