@@ -9,6 +9,18 @@ use RuntimeException;
 
 abstract class AbstractEntity
 {
+    protected ?int $id = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
     // will serve call getUsername => return $this->username
     public function __call(string $method, array $args): mixed
     {
