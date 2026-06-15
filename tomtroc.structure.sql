@@ -47,7 +47,7 @@ DROP TABLE IF EXISTS `members`;
 CREATE TABLE `members` (
   `member_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
-  `mail` varchar(150) NOT NULL,
+  `email` varchar(150) NOT NULL,
   `avatar_path` varchar(255) NOT NULL DEFAULT '/upload/avatars/default-avatar.png',
   `password_hash` varchar(255) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
@@ -56,7 +56,7 @@ CREATE TABLE `members` (
   `notification_count` int(10) unsigned,
   PRIMARY KEY (`member_id`),
   UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `mail` (`mail`)
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
