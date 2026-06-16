@@ -7,9 +7,11 @@ namespace Green\TomTroc\Entity;
 use Green\TomTroc\Enum\ValidatorEnum;
 use RuntimeException;
 
-abstract class AbstractEntity
+abstract class AbstractEntity implements EntityInterface
 {
     protected ?int $id = null;
+
+    abstract public static function getStorageIdName(): string;
 
     public function getId(): ?int
     {
