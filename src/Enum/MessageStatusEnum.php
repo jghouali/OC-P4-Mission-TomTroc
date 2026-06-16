@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Enum;
 
-enum MessageStatusEnum: string
+enum MessageStatusEnum: int
 {
-    case READ = 'READ';
-    case NOTREAD = 'NOT-READ';
+    case READ = 1;
+    case NOTREAD = 0;
 }
