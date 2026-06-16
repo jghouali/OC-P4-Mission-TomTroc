@@ -121,7 +121,7 @@ class MemberEntityTest extends TestCase
 
     public static function getterProvider(): array
     {
-        // We take valid Data Set
+        // We take valid Data Set // a modifier
         $goodMember = self::validDataProvider();
         $key = array_key_first($goodMember);
         $value = $goodMember[$key];

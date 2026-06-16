@@ -6,6 +6,9 @@ namespace Green\TomTroc\Core\Settings;
 
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
+use Green\TomTroc\Repository\BookRepository;
+use Green\TomTroc\Repository\MemberRepository;
+use Green\TomTroc\Repository\MessageRepository;
 use RuntimeException;
 
 class Settings
@@ -13,9 +16,16 @@ class Settings
     private static string $defaultSettingsFile = ROOT_DIR . '/config/app.settings.php';
     private static array $settings = [];
     private static StorageInterface $dbManager;
+    private static MemberRepository $memberRepository;
+    private static BookRepository $bookRepository;
+    private static MessageRepository $messageRepository;
 
     // Configuration keys constants
     public const APP_NAME = 'app.name';
+    public const APP_DEV = 'app.dev';
+    public const APP_MEMBER_REPOSITORY = 'app.memberRepository';
+    public const APP_BOOK_REPOSITORY = 'app.bookRepository';
+    public const APP_MESSAGE_REPOSITORY = 'app.messageRepository';
     public const DB_STORAGE = 'db.storage';
     public const DB_OPTIONS = 'db.options';
     public const DB_DSN = 'db.dsn';
@@ -34,6 +44,9 @@ class Settings
             );
             self::$dbManager->open();
         }
+        self::$memberRepository = Settings::get(Settings::APP_MEMBER_REPOSITORY, new MemberRepository());
+        self::$bookRepository = Settings::get(Settings::APP_BOOK_REPOSITORY, new BookRepository());
+        self::$messageRepository = Settings::get(Settings::APP_MESSAGE_REPOSITORY, new MessageRepository());
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -80,6 +93,36 @@ class Settings
     {
         if (isset(self::$dbManager)) {
             return self::$dbManager;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de BookRepository on the settings
+    public static function getBookRepository(): BookRepository
+    {
+        if (isset(self::$bookRepository)) {
+            return self::$bookRepository;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de Message Repository on the settings
+    public static function getMessageRepository(): MessageRepository
+    {
+        if (isset(self::$messageRepository)) {
+            return self::$messageRepository;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de Member Repository on the settings
+    public static function getMemberRepository(): MemberRepository
+    {
+        if (isset(self::$memberRepository)) {
+            return self::$memberRepository;
         } else {
             throw new RuntimeException('Settings are not initialize');
         }

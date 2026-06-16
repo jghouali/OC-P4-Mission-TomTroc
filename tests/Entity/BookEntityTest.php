@@ -17,7 +17,7 @@ class BookEntityTest extends TestCase
     public static string $goodAuthor = 'Nathan Williams';
     public static string $goodImagePath = '/upload/books/file.png';
     public static string $goodDescription = 'The Kinkfolk Table description';
-    public static BookStatusEnum $goodIsRead = BookStatusEnum::AVAILABLE;
+    public static BookStatusEnum $goodAvailability = BookStatusEnum::AVAILABLE;
 
     public static array $fieldName = [
         0 => 'title',

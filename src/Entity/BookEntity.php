@@ -7,14 +7,14 @@ namespace Green\TomTroc\Entity;
 use Green\TomTroc\Enum\BookStatusEnum;
 use Green\TomTroc\Enum\ValidatorEnum;
 
-class BookEntity extends AbstractEntity implements EntityInterface
+class BookEntity extends AbstractEntity
 {
     protected string $title;
     protected string $author;
     protected string $imagePath;
     protected string $description;
     protected BookStatusEnum $availability;
-    protected MemberEntity $fromMember;
+    protected MemberEntity|int $fromMember;
 
     public function __construct(
         string $title,
@@ -22,7 +22,7 @@ class BookEntity extends AbstractEntity implements EntityInterface
         string $imagePath,
         string $description,
         BookStatusEnum $availability,
-        MemberEntity $fromMember,
+        MemberEntity|int $fromMember,
     ) {
 
         $this->title = $this->validateField('title', $title, ValidatorEnum::alphanumeric_150);
@@ -35,14 +35,22 @@ class BookEntity extends AbstractEntity implements EntityInterface
 
     public function toArray(): array
     {
-        return [
+        $array = [
             'title' => $this->title,
             'author' => $this->author,
             'imagePath' => $this->imagePath,
             'description' => $this->description,
-            'availability' => $this->availability,
-            'fromMember' => $this->fromMember->getId(),
+            'availability' => $this->availability->value,
+            'fkMemberId' => $this->fromMember->getId(),
+            $this->getStorageIdName() => $this->getId(),
         ];
+
+        return $array;
+    }
+
+    public static function getStorageIdName(): string
+    {
+        return 'book_id';
     }
 
     public function setTitle(string $title): void

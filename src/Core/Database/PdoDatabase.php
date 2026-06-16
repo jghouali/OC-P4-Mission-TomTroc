@@ -42,12 +42,15 @@ class PdoDatabase implements StorageInterface
 
     // This function get the entity to insert as an array,
     // unpack and insert it in db
-    public function insert(string $entity, array $data): bool
+    public function insert(string $entity, array $data): int|bool
     {
         $columns = [];
         $values = [];
 
         foreach ($data as $column => $value) {
+            if (substr($column, -3) === '_id') {
+                continue;
+            }
             $columns[] = $this->camelToSnake($column);
             $values[] = $value;
         }
@@ -58,7 +61,10 @@ class PdoDatabase implements StorageInterface
         $sql = "INSERT INTO $entity ($columns) VALUES $values";
         $statement = self::$pdo->prepare("$sql");
 
-        return $statement->execute();
+        if ($statement->execute()) {
+            return (int) self::$pdo->lastInsertId();
+        }
+        return false;
     }
 
     // This function get the entity to delete as an array,
@@ -67,6 +73,9 @@ class PdoDatabase implements StorageInterface
     {
         $where = '';
         foreach ($data as $column => $value) {
+            if (substr($column, -3) === '_id') {
+                continue;
+            }
             $where = $where . $this->camelToSnake($column) . '=\'' . $value . '\' AND ';
         }
 
@@ -143,7 +152,7 @@ class PdoDatabase implements StorageInterface
     public function camelToSnake(string $camelCase)
     {
         $regex = '/(?<=\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
-        $snakeCase = preg_replace($regex, '_', $camelCase);
+        $snakeCase = strtolower(preg_replace($regex, '_', $camelCase));
 
         return $snakeCase;
     }

@@ -63,6 +63,26 @@ class MemberRepository
         return $members;
     }
 
+    public function findById(int $id): MemberEntity
+    {
+        $dbManager = Settings::getDbManager();
+        $result = $dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
+
+        $member = new MemberEntity(
+            $result['username'],
+            $result['email'],
+            $result['password_hash'],
+            $result['avatar_path'],
+            date_create($result['created_at']),
+            date_create($result['updated_at']),
+            $result['notification_count'],
+            MemberStatusEnum::tryFrom($result['status'])
+        );
+        $member->setId($result['member_id']);
+
+        return $member;
+    }
+
     public function findByEmail(string $email): MemberEntity
     {
         $dbManager = Settings::getDbManager();
@@ -87,7 +107,13 @@ class MemberRepository
     {
         $dbManager = Settings::getDbManager();
 
-        return $dbManager->insert('members', $member->toArray());
+        $lastId = $dbManager->insert('members', $member->toArray());
+        if (is_int($lastId)) {
+            $member->setId($lastId);
+            return true;
+        }
+
+        return false;
     }
 
     public function delete(MemberEntity $member): bool
