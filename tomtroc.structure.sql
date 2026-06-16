@@ -32,7 +32,7 @@ CREATE TABLE `books` (
   `availability` enum('NOT-AVAILABLE','AVAILABLE') NOT NULL DEFAULT 'AVAILABLE',
   `fk_menber_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`book_id`),
-  KEY `fk_menber_id` (`fk_menber_id`),
+  KEY `fk_member_id` (`fk_menber_id`),
   CONSTRAINT `books_ibfk_1` FOREIGN KEY (`fk_menber_id`) REFERENCES `members` (`member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

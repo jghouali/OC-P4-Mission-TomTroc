@@ -79,7 +79,13 @@ class MemberEntity extends AbstractEntity implements EntityInterface
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
             'notificationCount' => "$this->notificationCount",
             'status' => $this->status->value,
+            $this->getStorageIdName() => $this->getId(),
         ];
+    }
+
+    public static function getStorageIdName(): string
+    {
+        return 'member_id';
     }
 
     public function getUserName(): string
