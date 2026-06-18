@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Database;
 
+use Exception;
 use PDO;
+use RuntimeException;
 
 // This class implement StorageInterface as it will be possible
 // to change it with every class implement StorageInterface,
@@ -18,13 +20,23 @@ class PdoDatabase implements StorageInterface
     private string $user;
     private string $password;
     private ?array $options;
+    private ?int $fetchAllMode;
+    private ?int $fetchMode;
 
-    public function __construct(string $dsn, string $user, string $password, ?array $options)
-    {
+    public function __construct(
+        string $dsn,
+        string $user,
+        string $password,
+        ?array $options,
+        ?int $fetchAllMode,
+        ?int $fetchMode
+    ) {
         $this->dsn = $dsn;
         $this->user = $user;
         $this->password = $password;
         $this->options = $options;
+        $this->fetchAllMode = $fetchAllMode;
+        $this->fetchMode = $fetchMode;
     }
 
     public function open()
@@ -47,6 +59,7 @@ class PdoDatabase implements StorageInterface
         $columns = [];
         $values = [];
 
+        //var_dump($data);
         foreach ($data as $column => $value) {
             if (substr($column, -3) === '_id') {
                 continue;
@@ -103,7 +116,7 @@ class PdoDatabase implements StorageInterface
 
         $statement->execute();
 
-        return $statement->fetchAll();
+        return $statement->fetchAll($this->fetchAllMode);
     }
 
     // This function search for all entity in table
@@ -115,7 +128,7 @@ class PdoDatabase implements StorageInterface
 
         $statement->execute();
 
-        return $statement->fetchAll();
+        return $statement->fetchAll($this->fetchAllMode);
     }
 
     // This function search for One entity in table
@@ -127,7 +140,24 @@ class PdoDatabase implements StorageInterface
         $statement = self::$pdo->prepare("$sql");
         $statement->execute();
 
-        return $statement->fetch();
+        try {
+            $result = $statement->fetch($this->fetchMode);
+        } catch (Exception $e) {
+            throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return  : " . $e->getMessage());
+        }
+        if (is_array($result)) {
+            if (count($result) === 0) {
+                $error = 'no result';
+            } else {
+                return $result;
+            }
+        }
+        if ($result === false) {
+            $error = 'false';
+        } else {
+            $error = $result;
+        }
+        throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return " . $error);
     }
 
     // This function get the entity to update as an array,

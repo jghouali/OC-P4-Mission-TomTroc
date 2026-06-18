@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Repository;
 
+use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MessageEntity;
 use Green\TomTroc\Enum\MessageStatusEnum;
@@ -29,22 +30,31 @@ class MessageRepository
         return $result;
     }
 
-    public function findById(int $id): MessageEntity
+    public function deleteAll(): bool
     {
         $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('messages', MessageEntity::getStorageIdName(), $id);
 
-        $message = new MessageEntity(
-            $result['content'],
-            date_create($result['sent_at']),
-            date_create($result['modified_at']),
-            Settings::getMemberRepository()->findById($result['fk_from_member_id']),
-            Settings::getMemberRepository()->findById($result['fk_to_member_id']),
-            MessageStatusEnum::tryFrom($result['is_read']),
-        );
-        $message->setId($result['message_id']);
+        return $dbManager->deleteAll('messages');
+    }
 
-        return $message;
+    public function insert(MessageEntity $message): bool
+    {
+        $dbManager = Settings::getDbManager();
+
+        $lastId = $dbManager->insert('messages', $message->toArray());
+        if (is_int($lastId)) {
+            $message->setId($lastId);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function delete(MessageEntity $message): bool
+    {
+        $dbManager = Settings::getDbManager();
+
+        return $dbManager->delete('messages', $message->toArray());
     }
 
     public function findAll(): array
@@ -79,6 +89,24 @@ class MessageRepository
         return $messages;
     }
 
+    public function findById(int $id): MessageEntity
+    {
+        $dbManager = Settings::getDbManager();
+        $result = $dbManager->findOne('messages', MessageEntity::getStorageIdName(), $id);
+
+        $message = new MessageEntity(
+            $result['content'],
+            Locales::getLocalDateTime($result['sent_at']),
+            Locales::getLocalDateTime($result['modified_at']),
+            Settings::getMemberRepository()->findById($result['fk_from_member_id']),
+            Settings::getMemberRepository()->findById($result['fk_to_member_id']),
+            MessageStatusEnum::tryFrom($result['is_read']),
+        );
+        $message->setId($result['message_id']);
+
+        return $message;
+    }
+
     public function findAllByRecipient(int $recipientId): array
     {
         $dbManager = Settings::getDbManager();
@@ -87,8 +115,8 @@ class MessageRepository
         foreach ($results as $result) {
             $message = new MessageEntity(
                 $result['content'],
-                date_create($result['sent_at']),
-                date_create($result['modified_at']),
+                Locales::getLocalDateTime($result['sent_at']),
+                Locales::getLocalDateTime($result['modified_at']),
                 Settings::getMemberRepository()->findById($result['fk_from_member_id']),
                 Settings::getMemberRepository()->findById($result['fk_to_member_id']),
                 MessageStatusEnum::tryFrom($result['is_read']),
@@ -107,8 +135,8 @@ class MessageRepository
         foreach ($results as $result) {
             $message = new MessageEntity(
                 $result['content'],
-                date_create($result['sent_at']),
-                date_create($result['modified_at']),
+                Locales::getLocalDateTime($result['sent_at']),
+                Locales::getLocalDateTime($result['modified_at']),
                 Settings::getMemberRepository()->findById($result['fk_from_member_id']),
                 Settings::getMemberRepository()->findById($result['fk_to_member_id']),
                 MessageStatusEnum::tryFrom($result['is_read']),
@@ -119,31 +147,24 @@ class MessageRepository
         return $results;
     }
 
-    public function insert(MessageEntity $message): bool
+    public function findAllByIsRead(MessageStatusEnum $status): array
     {
         $dbManager = Settings::getDbManager();
+        $results = $dbManager->findAllWhere('messages', 'is_read', '=', "$status->value");
 
-        $lastId = $dbManager->insert('messages', $message->toArray());
-        if (is_int($lastId)) {
-            $message->setId($lastId);
-            return true;
+        foreach ($results as $result) {
+            $message = new MessageEntity(
+                $result['content'],
+                Locales::getLocalDateTime($result['sent_at']),
+                Locales::getLocalDateTime($result['modified_at']),
+                Settings::getMemberRepository()->findById($result['fk_from_member_id']),
+                Settings::getMemberRepository()->findById($result['fk_to_member_id']),
+                MessageStatusEnum::tryFrom($result['is_read']),
+            );
+            $message->setId($result['message_id']);
         }
 
-        return false;
-    }
-
-    public function delete(MessageEntity $message): bool
-    {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->delete('messages', $message->toArray());
-    }
-
-    public function deleteAll(): bool
-    {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->deleteAll('messages');
+        return $results;
     }
 
     public function update(int $messageId, MessageEntity $message): bool

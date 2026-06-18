@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Entity;
 
+use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Enum\ValidatorEnum;
 use RuntimeException;
 
@@ -47,6 +48,16 @@ abstract class AbstractEntity implements EntityInterface
     protected function validateField(string $propertyName, mixed $field, ValidatorEnum $validator): mixed
     {
         switch ($validator->value) {
+            case 'textContent':
+                // A-Z or a-z or 0-9 or _ or - or space minimum 1 maximum 50
+                $validated = filter_var(
+                    $field,
+                    FILTER_VALIDATE_REGEXP,
+                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s\?\,\.\!]*$/']]
+                );
+                $message = $propertyName . ' must only contain characters in a-z, A-Z, 0-9, -, _, ?, !, ,, ., : or -';
+                break;
+
             case '50alphanumeric_-':
                 // A-Z or a-z or 0-9 or _ or - or space minimum 1 maximum 50
                 $validated = filter_var(
@@ -54,7 +65,7 @@ abstract class AbstractEntity implements EntityInterface
                     FILTER_VALIDATE_REGEXP,
                     ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s]{1,50}$/']]
                 );
-                $message = $propertyName . ' must only contain character in a-z, A-Z, 0-9, _ or -';
+                $message = $propertyName . ' must only contain 50 characters in a-z, A-Z, 0-9, _ or -';
                 break;
 
             case '150alphanumeric_-':
@@ -64,7 +75,7 @@ abstract class AbstractEntity implements EntityInterface
                     FILTER_VALIDATE_REGEXP,
                     ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s]{1,150}$/']]
                 );
-                $message = $propertyName . ' must only contain character in a-z, A-Z, 0-9, _ or -';
+                $message = $propertyName . ' must only contain 150 characters in a-z, A-Z, 0-9, _ or -';
                 break;
 
             case 'bcryptHash':
@@ -108,8 +119,8 @@ abstract class AbstractEntity implements EntityInterface
             case 'humanDate':
                 // must be a date time before now and not before 110 years ago
                 $validated = (
-                    $field <= date_create('now') &&
-                    $field > date_create('110 years ago')
+                    $field <= Locales::getLocalDateTime() &&
+                    $field > Locales::getLocalDateTime('110 years ago')
                 );
                 $message = $propertyName . ' must be before now and afer 110 years ago';
                 break;

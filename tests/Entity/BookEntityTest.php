@@ -4,406 +4,238 @@ declare(strict_types=1);
 
 namespace Tests\Entity;
 
+use Green\TomTroc\Core\Lib\Locales;
+use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\BookEntity;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\BookStatusEnum;
-use PHPUnit\Framework\Attributes\DataProvider;
+use Green\TomTroc\Enum\MemberStatusEnum;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class BookEntityTest extends TestCase
 {
-    public static string $goodTitle = 'The Kinkfolk Table';
-    public static string $goodAuthor = 'Nathan Williams';
-    public static string $goodImagePath = '/upload/books/file.png';
-    public static string $goodDescription = 'The Kinkfolk Table description';
-    public static BookStatusEnum $goodAvailability = BookStatusEnum::AVAILABLE;
+    private BookEntity $validBook;
 
-    public static array $fieldName = [
-        0 => 'title',
-        1 => 'author',
-        2 => 'imagePath',
-        3 => 'description',
-        4 => 'availability',
-        5 => 'fromMember',
-    ];
-
-    public static function generateBookEntityDataProvider(string $label, string $payload): array
+    // PHPunit fixtures
+    public static function setUpBeforeClass(): void
     {
-        // Get a valid Data set
-        $validData = self::validBookDataProvider()['All fields are valid'];
-
-        // For each dataset, one error will be injected into one field at a time
-        // except for $availability, because it is an Enum
-        // except for $fromMember, because it is a MemberEntity
-        // => count($validData) - 2
-        for ($i = 0; $i < count($validData) - 2; $i++) {
-            $validDataTmp[$i] = [];
-
-            for ($j = 0; $j < count($validData); $j++) {
-                // Fill in a valid value
-                $validDataTmp[$i][$j] = $validData[$j];
-
-                // Fill in a invalid value
-                if ($i === $j) {
-                    $validDataTmp[$i][$j] = $payload;
-
-                    // Invalid data on MemberEntity cannot be a string,
-                    // so put a GoodMember we will filter the assert
-                    if (self::$fieldName[$i] === 'fromMember') {
-                        $validDataTmp[$i][$j] = self::createGoodMember();
-                    }
-
-                    // enum cannot have data different than enum values
-                    // we will filter the assert
-                    if (self::$fieldName[$i] === 'availability') {
-                        $validDataTmp[$i][$j] = BookStatusEnum::AVAILABLE;
-                    }
-                }
-            }
-
-            // Name the Data Set by his invalid Data
-            if (self::$fieldName[$i] === 'availability') {
-                $validDataFinal[self::$fieldName[$i] . ' is READ'] = $validDataTmp[$i];
-            } else {
-                $validDataFinal[self::$fieldName[$i] . " $label"] = $validDataTmp[$i];
-            }
-        };
-
-        return (
-            isset($validDataFinal) &&
-            count($validDataFinal) >= 1
-        ) ? $validDataFinal : self::validBookDataProvider();
+        Settings::addSettingsFile(ROOT_DIR . '/config/custom.php');
+        Settings::initialize();
     }
 
-    public static function createGoodMember(): MemberEntity
+    public function tearDown(): void
     {
-        return new MemberEntity(
-            MemberEntityTest::$goodUsername,
-            MemberEntityTest::$goodEmail,
-            MemberEntityTest::$goodPasswordHash,
-            MemberEntityTest::$goodAvatarPath,
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            MemberEntityTest::$goodNotificationCount,
-            MemberEntityTest::$goodStatus,
+        unset($this->validBook);
+    }
+
+    public function setUp(): void
+    {
+        $this->validBook = self::instanciateValidBook();
+    }
+
+    public static function instanciateValidBook(): BookEntity
+    {
+        return new BookEntity(
+            'Titre du livre',
+            'John Doe',
+            '/upload/books/book.png',
+            'Cest un livre',
+            BookStatusEnum::AVAILABLE,
+            MemberEntityTest::instanciateValidMember(),
         );
     }
 
-    public static function validBookDataProvider(): array
+    public function testBookEntityConstructor(): void
     {
-        return [
-            'All fields are valid' => [
-                self::$goodTitle,
-                self::$goodAuthor,
-                self::$goodImagePath,
-                self::$goodDescription,
-                BookStatusEnum::AVAILABLE,
-                self::createGoodMember(),
-            ],
-        ];
-    }
+        // GIVEN
+        // Have this informations about a book :
+        // 'Titre du livre', 'John Doe', '/upload/books/book.png',
+        // 'Cest un livre', BookStatusEnum::AVAILABLE, fromMember 'John Doe'
 
-    public static function invalidDataProvider(): array
-    {
-        // We inject empty, sql injection and xss invalid field on the Data Set
-        $is_empty = self::generateBookEntityDataProvider(
-            'is empty',
-            ''
-        );
-        $is_sql_inj = self::generateBookEntityDataProvider(
-            '\' OR \'1\'=\'',
-            '\' OR \'1\'=\''
-        );
-        $is_xss = self::generateBookEntityDataProvider(
-            '<audio src/onerror=alert(1)>',
-            '<audio src/onerror=alert(1)>'
-        );
-
-        return array_merge($is_empty, $is_sql_inj, $is_xss);
-    }
-
-    public static function getterProvider(): array
-    {
-        // We take valid Data Set
-        $goodBook = self::validBookDataProvider();
-        $key = array_key_first($goodBook);
-        $value = $goodBook[$key];
-
-        // And derivate it to n*field + the name of each getter and value to test
-        $getterArray = [];
-        foreach (self::$fieldName as $field) {
-            $method = 'get' . substr_replace($field, strtoupper(substr($field, 0, 1)), 0, 1);
-            $getterArray[$method] = array_merge([$method, $field], $value);
-        }
-
-        return $getterArray;
-    }
-
-    public static function setterProvider(): array
-    {
-        // We take valid Data Set
-        $goodBook = self::validBookDataProvider();
-        $key = array_key_first($goodBook);
-        $value = $goodBook[$key];
-
-        // And derivate it to n*field + the name of each setter and value to test
-        $setterArray = [];
-        foreach (self::$fieldName as $field) {
-            $method = 'set' . substr_replace($field, strtoupper(substr($field, 0, 1)), 0, 1);
-            $setterArray[$method] = array_merge([$method, $field], $value);
-        }
-
-        return $setterArray;
-    }
-
-    #[DataProvider('validBookDataProvider')]
-    public function testCanCreateAValidNewBookEntity(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // Given valid informations on create a new BookEntity
+        // WHEN
+        // Create BookEntity using constructor
         $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
+            'Titre du livre',
+            'John Doe',
+            '/upload/books/book.png',
+            'Cest un livre',
+            BookStatusEnum::AVAILABLE,
+            MemberEntityTest::instanciateValidMember()
         );
 
-        // Expected BookEntity is valid
-
-        // A bookEntity is a child of Green\TomTroc\Entity\BookEntity
+        // EXPECT
+        // $book is a child of Green\TomTroc\Entity\BookEntity
         $this->assertSame('Green\TomTroc\Entity\BookEntity', get_class($book));
-
-        // It has his title
-        $this->assertSame($title, $book->getTitle());
-
-        // It has his author
-        $this->assertSame($author, $book->getAuthor());
-
-        // It has his image
-        $this->assertSame($imagePath, $book->getImagePath());
-
-        // It has his description
-        $this->assertSame($description, $book->getDescription());
-
-        // It has his availibility
-        $this->assertSame($availability, $book->getAvailability());
-
-        // It has his FromMember
-        $this->assertSame($fromMember, $book->getFromMember());
+        // can getTitle()
+        $this->assertSame('Titre du livre', $book->getTitle());
+        // can getAuthor()
+        $this->assertSame('John Doe', $book->getAuthor());
+        // can getImagePath()
+        $this->assertSame('/upload/books/book.png', $book->getImagePath());
+        // can getDescription()
+        $this->assertSame('Cest un livre', $book->getDescription());
+        // can getAvailability()
+        $this->assertSame(BookStatusEnum::AVAILABLE, $book->getAvailability());
+        // can getFromMember()
+        $this->assertSame('John Doe', $book->getFromMember()->getUsername());
     }
 
-    #[DataProvider('invalidDataProvider')]
-    public function testAnAppropriateExceptionIsThrownWhenInvalidFieldIsPassedForCreateANewBookEntity(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // We expect a RuntimeException
-        $this->expectException(RuntimeException::class);
+    public function testGetters(): void
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
 
-        // When a field is invalid at BookEntity creation
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
+        // WHEN
+        // Use getters
+        // EXPECT
+        // Getters will show $this->validBook informations
+        // can getTitle()
+        $this->assertSame('Titre du livre', $this->validBook->getTitle());
+        // can getAuthor()
+        $this->assertSame('John Doe', $this->validBook->getAuthor());
+        // can getImagePath()
+        $this->assertSame('/upload/books/book.png', $this->validBook->getImagePath());
+        // can getDescription()
+        $this->assertSame('Cest un livre', $this->validBook->getDescription());
+        // can getAvailability()
+        $this->assertSame(BookStatusEnum::AVAILABLE, $this->validBook->getAvailability());
+        // can getUsername()
+        $this->assertSame('John Doe', $this->validBook->getFromMember()->getUsername());
+    }
+
+    public function testSetters(): void
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
+
+        // WHEN
+        // Use setters
+        $this->validBook->setTitle('Titredulivre2');
+        $this->validBook->setAuthor('John Doe2');
+        $this->validBook->setImagePath('/upload/books/book2.png');
+        $this->validBook->setDescription('Description2');
+        $this->validBook->setAvailability(BookStatusEnum::NOTAVAILABLE);
+        $this->validBook->setFromMember(new MemberEntity(
+            'JohnDoe2',
+            'john.doe2@mail.com',
+            password_hash('password2', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            '/upload/avatars/avatar2.png',
+            Locales::getLocalDateTime(),
+            Locales::getLocalDateTime(),
+            0,
+            MemberStatusEnum::VALIDATED
+        ));
+
+        // EXPECT
+        // Getter will show the same informations
+        // can getTitle()
+        $this->assertSame('Titredulivre2', $this->validBook->getTitle());
+        // can getAuthor()
+        $this->assertSame('John Doe2', $this->validBook->getAuthor());
+        // can getImagePath()
+        $this->assertSame('/upload/books/book2.png', $this->validBook->getImagePath());
+        // can getDescription()
+        $this->assertSame('Description2', $this->validBook->getDescription());
+        // can getAvailability()
+        $this->assertSame(BookStatusEnum::NOTAVAILABLE, $this->validBook->getAvailability());
+        // can getFromMember()
+        $this->assertSame('JohnDoe2', $this->validBook->getFromMember()->getUsername());
+    }
+
+    #[TestDox('validateField() return RuntimeException on invalid field at new BookEntity() constructor')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldAtBookEntityConstructor()
+    {
+        // GIVEN
+        // Have this informations about a book :
+        // 'Titre du livre', 'John Doe', '/upload/books/book.png',
+        // 'Cest un livre', BookStatusEnum::AVAILABLE, fromMember 'John Doe'
+
+        // EXPECT
+        // Have a RuntimeException
+        $this->expectException(RuntimeException::class);
+        // And an error talking about image
+        $this->expectExceptionMessageMatches('/image/');
+
+        // WHEN
+        // imagePath is invalid at BookEntity creation
+        new BookEntity(
+            'Titre du livre',
+            'John Doe',
+            '/../../../../etc/shadow',
+            'Cest un livre',
+            BookStatusEnum::AVAILABLE,
+            MemberEntityTest::instanciateValidMember(),
         );
     }
 
-    #[DataProvider('validBookDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetTitle(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // When a field is invalid at BookEntity creation
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setTitle()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetTitle()
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/title must only contain character in a-z, A-Z, 0-9, _ or -/');
+        // And an appropriate error message
+        $this->expectExceptionMessageMatches('/title must only contain 150 characters in a-z, A-Z, 0-9, _ or -/');
 
-        $book->setTitle('Bad+Username');
+        // WHEN
+        // a field is invalid at setTitle()
+        $this->validBook->setTitle('Bad+Username');
     }
 
-    #[DataProvider('validBookDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetAuthor(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // When a field is invalid at BookEntity creation
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setAuthor()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetAuthor()
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/author must only contain character in a-z, A-Z, 0-9, _ or -/');
+        // And an appropriate error message
+        $this->expectExceptionMessageMatches('/author must only contain 150 characters in a-z, A-Z, 0-9, _ or -/');
 
-        $book->setAuthor('Bad+Author');
+        // WHEN
+        // a field is invalid at setAuthor()
+        $this->validBook->setAuthor('Bad+Author');
     }
 
-    #[DataProvider('validBookDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetImagePath(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // When a field is invalid at BookEntity creation
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setImagePath()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetImagePath()
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/imagePath must be stored in \/upload\/books\/,' .
             ' contain only a-z, A-Z or 0-9, and have .png extension/');
 
-        $book->setImagePath('Bad+ImagePath');
+        // WHEN
+        // a field is invalid at setImagePath()
+        $this->validBook->setImagePath('Bad+ImagePath');
     }
 
-    #[DataProvider('validBookDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetDescription(
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // When a field is invalid at BookEntity creation
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setDescription()')]
+    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetDescription()
+    {
+        // GIVEN
+        // Have a $this->validBook set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/description must only contain character in a-z, A-Z, 0-9, _ or -/');
+        // And an appropriate error message
+        $this->expectExceptionMessageMatches('/description must only contain 150 characters/');
 
-        $book->setDescription('Bad+Description');
-    }
-
-    #[DataProvider('getterProvider')]
-    public function testGettersReturnGoodData(
-        string $getter,
-        string $varName,
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-
-        // Given valid informaton about a Book
-
-        // When instanciate a new BookEntity with this informations
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
-
-        // Getter will show the same informations
-        $this->assertSame($$varName, $book->$getter());
-    }
-
-    #[DataProvider('setterProvider')]
-    public function testSettersSetWellData(
-        string $setter,
-        string $varName,
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability,
-        MemberEntity $fromMember,
-    ) {
-        // Given a bookEntity
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $fromMember,
-        );
-
-        $getter = substr_replace($setter, 'g', 0, 1);
-
-        // When a setter change a property, Getter will show the new property
-        switch ($varName) {
-            case 'availability':
-                $book->$setter(BookStatusEnum::NOTAVAILABLE);
-
-                $this->assertEquals(BookStatusEnum::NOTAVAILABLE, $book->$getter());
-                break;
-
-            case 'fromMember':
-                $book->$setter(self::createGoodMember());
-
-                $this->assertEquals(self::createGoodMember(), $book->$getter());
-                break;
-
-            case 'imagePath':
-                $book->$setter('/upload/books/newimage.png');
-
-                $this->assertEquals('/upload/books/newimage.png', $book->$getter());
-                break;
-
-            default:
-                // Validate title, author and description
-                $book->$setter('1' . $$varName);
-
-                $this->assertSame('1' . $$varName, $book->$getter());
-        }
+        // WHEN
+        // a field is invalid at setDescription()
+        $this->validBook->setDescription('Bad+Description');
     }
 }
