@@ -6,6 +6,7 @@ namespace Green\TomTroc\Repository;
 
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\BookEntity;
+use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\BookStatusEnum;
 use PDOException;
 
@@ -21,7 +22,7 @@ class BookRepository
                 $row['author'],
                 $row['image_path'],
                 $row['description'],
-                $row['availability'],
+                BookStatusEnum::tryFrom($row['availability']),
                 $row['fk_member_id']
             );
         }
@@ -29,22 +30,33 @@ class BookRepository
         return $result;
     }
 
-    public function findById(int $id): BookEntity
+    public function deleteAll(): bool
     {
         $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('books', BookEntity::getStorageIdName(), $id);
 
-        $book = new BookEntity(
-            $result['title'],
-            $result['author'],
-            $result['image_path'],
-            $result['description'],
-            BookStatusEnum::tryFrom($result['availability']),
-            Settings::getMemberRepository()->findById($result['fk_member_id'])
-        );
-        $book->setId($result['book_id']);
+        return $dbManager->deleteAll('books');
+    }
 
-        return $book;
+    public function insert(BookEntity $book): bool
+    {
+
+        $dbManager = Settings::getDbManager();
+
+        $lastId = $dbManager->insert('books', $book->toArray());
+        if (is_int($lastId)) {
+            $book->setId($lastId);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function delete(BookEntity $book): bool
+    {
+        $dbManager = Settings::getDbManager();
+
+        return $dbManager->delete('books', $book->toArray());
     }
 
     public function findAll(): array
@@ -53,30 +65,6 @@ class BookRepository
         $books = $dbManager->findAll('books');
 
         return $books;
-    }
-
-    public function findByTitle(string $title): BookEntity|null
-    {
-        try {
-            $bookArray = Settings::getDbManager()->findOne('books', 'title', $title);
-
-            $book = new BookEntity(
-                $bookArray['title'],
-                $bookArray['author'],
-                $bookArray['image_path'],
-                $bookArray['description'],
-                BookStatusEnum::tryFrom($bookArray['availability']),
-                Settings::getMemberRepository()->findById($bookArray['fk_member_id']),
-            );
-            $book->setId($bookArray['book_id']);
-        } catch (PDOException $e) {
-            if (Settings::get(Settings::APP_DEV)) {
-                echo $e->getMessage();
-            }
-            return null;
-        }
-
-        return $book;
     }
 
     public function findAllWhere(string $column, string $operator, string $value): array
@@ -116,48 +104,63 @@ class BookRepository
         return $booksArray;
     }
 
-    public function findByAvailability(BookStatusEnum $availability): array
+    public function findById(int $id): BookEntity
+    {
+        $dbManager = Settings::getDbManager();
+        $result = $dbManager->findOne('books', BookEntity::getStorageIdName(), $id);
+
+        $book = new BookEntity(
+            $result['title'],
+            $result['author'],
+            $result['image_path'],
+            $result['description'],
+            BookStatusEnum::tryFrom($result['availability']),
+            Settings::getMemberRepository()->findById($result['fk_member_id'])
+        );
+        $book->setId($result['book_id']);
+
+        return $book;
+    }
+
+    public function findByTitle(string $title): BookEntity|null
+    {
+        try {
+            $bookArray = Settings::getDbManager()->findOne('books', 'title', $title);
+
+            $book = new BookEntity(
+                $bookArray['title'],
+                $bookArray['author'],
+                $bookArray['image_path'],
+                $bookArray['description'],
+                BookStatusEnum::tryFrom($bookArray['availability']),
+                Settings::getMemberRepository()->findById($bookArray['fk_member_id']),
+            );
+            $book->setId($bookArray['book_id']);
+        } catch (PDOException $e) {
+            if (Settings::get(Settings::APP_DEV)) {
+                echo $e->getMessage();
+            }
+            return null;
+        }
+
+        return $book;
+    }
+
+    public function findAllByMember(MemberEntity $member): array
+    {
+        $dbManager = Settings::getDbManager();
+        $member = Settings::getMemberRepository()->findById($member->getId());
+        $results = $dbManager->findAllWhere('books', 'fk_member_id', '=', (string) $member->getId());
+
+        return $results;
+    }
+
+    public function findAllByAvailability(BookStatusEnum $availability): array
     {
         $dbManager = Settings::getDbManager();
         $results = $dbManager->findAllWhere('books', 'availability', '=', $availability->value);
 
         return $results;
-    }
-
-    public function findAllByMember(string $title): array
-    {
-        $dbManager = Settings::getDbManager();
-        $results = $dbManager->findOne('books', 'title', $title);
-
-        return $results;
-    }
-
-    public function insert(BookEntity $book): bool
-    {
-
-        $dbManager = Settings::getDbManager();
-
-        $lastId = $dbManager->insert('books', $book->toArray());
-        if (is_int($lastId)) {
-            $book->setId($lastId);
-            return true;
-        }
-
-        return false;
-    }
-
-    public function delete(BookEntity $book): bool
-    {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->delete('books', $book->toArray());
-    }
-
-    public function deleteAll(): bool
-    {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->deleteAll('books');
     }
 
     public function update(int $bookId, BookEntity $book): bool

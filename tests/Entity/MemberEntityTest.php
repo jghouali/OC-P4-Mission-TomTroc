@@ -5,544 +5,281 @@ declare(strict_types=1);
 namespace Tests\Entity;
 
 use DateTime;
+use Green\TomTroc\Core\Lib\Locales;
+use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class MemberEntityTest extends TestCase
 {
-    public static string $goodUsername = 'nathalire';
-    public static string $goodEmail = 'nathalie@mail.com';
-    public static string $goodPasswordHash = '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu';
-    public static string $goodAvatarPath = '/upload/avatars/cnsk4qcds54xvx5.png';
-    public static MemberStatusEnum $goodStatus = MemberStatusEnum::VALIDATED;
-    public static int $goodNotificationCount = 0;
+    private MemberEntity $validMember;
+    private static string $dateFormatted;
+    private static DateTime $date;
 
-    public static array $fieldName = [
-        0 => 'username',
-        1 => 'email',
-        2 => 'passwordHash',
-        3 => 'avatarPath',
-        4 => 'createdAt',
-        5 => 'updatedAt',
-        6 => 'notificationCount',
-        7 => 'status',
-    ];
-
-    public static function generateMemberEntityDataProvider(string $label, string $payload): array
+    // PHPunit fixtures
+    public static function setUpBeforeClass(): void
     {
-        // Get a valid Data set
-        $validData = self::validDataProvider()['All fields are valid'];
-
-        // For each dataset, one error will be injected into one field at a time
-        // except for $status, because it is an Enum => count($validData) - 1
-        for ($i = 0; $i < count($validData) - 1; $i++) {
-            $validDataTmp[$i] = [];
-
-            for ($j = 0; $j < count($validData); $j++) {
-                // Fill in a valid value
-                $validDataTmp[$i][$j] = $validData[$j];
-
-                // Fill in a invalid value
-                if ($i === $j) {
-                    $validDataTmp[$i][$j] = $payload;
-
-                    // Invalid data on DateTime cannot be a string, so put a 200 years ago DateTime
-                    if (self::$fieldName[$i] === 'createdAt') {
-                        $validDataTmp[$i][$j] = date_create('200 years ago');
-                    }
-
-                    // Invalid data on Datetime cannot be a string, so put a 200 years ago DateTime
-                    if (self::$fieldName[$i] === 'updatedAt') {
-                        $validDataTmp[$i][$j] = date_create('200 years ago');
-                    }
-                    // enum cannot have data different than enum values
-                    if (self::$fieldName[$i] === 'status') {
-                        $validDataTmp[$i][$j] = MemberStatusEnum::VALIDATED;
-                    }
-                    // enum cannot have data different than enum values
-                    if (self::$fieldName[$i] === 'notificationCount') {
-                        $validDataTmp[$i][$j] = -1;
-                    }
-                }
-            }
-
-            // Name the Data Set by his invalid Data
-            if (self::$fieldName[$i] === 'createdAt') {
-                $validDataFinal[self::$fieldName[$i] . ' is 200 years ago'] = $validDataTmp[$i];
-            } elseif (self::$fieldName[$i] === 'updatedAt') {
-                $validDataFinal[self::$fieldName[$i] . ' is 200 years ago'] = $validDataTmp[$i];
-            } elseif (self::$fieldName[$i] === 'notificationCount') {
-                $validDataFinal[self::$fieldName[$i] . ' is -1'] = $validDataTmp[$i];
-            } else {
-                $validDataFinal[self::$fieldName[$i] . " $label"] = $validDataTmp[$i];
-            }
-        };
-
-        return (isset($validDataFinal) && count($validDataFinal) >= 1) ? $validDataFinal : self::validDataProvider();
+        Settings::addSettingsFile(ROOT_DIR . '/config/custom.php');
+        Settings::initialize();
     }
 
-    public static function validDataProvider(): array
+    public function setUp(): void
     {
-        return [
-            'All fields are valid' => [
-                self::$goodUsername,
-                self::$goodEmail,
-                self::$goodPasswordHash,
-                self::$goodAvatarPath,
-                date_create('now'),
-                date_create('now'),
-                self::$goodNotificationCount,
-                self::$goodStatus,
-            ],
-        ];
+        self::$dateFormatted = Locales::getLocalFormattedDateTime();
+        self::$date = Locales::getLocalDateTime(self::$dateFormatted);
+        $this->validMember = self::instanciateValidMember();
     }
 
-    public static function invalidDataProvider(): array
+    public function tearDown(): void
     {
-        // We inject empty, sql injection and xss invalid field on the Data Set
-        $is_empty = self::generateMemberEntityDataProvider(
-            'is empty',
-            ''
+        unset($this->validMember);
+    }
+
+    public static function instanciateValidMember(): MemberEntity
+    {
+        self::$dateFormatted = Locales::getLocalFormattedDateTime();
+        self::$date = Locales::getLocalDateTime(self::$dateFormatted);
+        return new MemberEntity(
+            'John Doe',
+            'john.doe@mail.com',
+            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            '/upload/avatars/avatar.png',
+            self::$date,
+            self::$date,
+            0,
+            MemberStatusEnum::VALIDATED
         );
-        $is_sql_inj = self::generateMemberEntityDataProvider(
-            '\' OR \'1\'=\'',
-            '\' OR \'1\'=\''
-        );
-        $is_xss = self::generateMemberEntityDataProvider(
-            '<audio src/onerror=alert(1)>',
-            '<audio src/onerror=alert(1)>'
-        );
-
-        return array_merge($is_empty, $is_sql_inj, $is_xss);
     }
 
-    public static function getterProvider(): array
+    public function testMemberEntityConstructor()
     {
-        // We take valid Data Set // a modifier
-        $goodMember = self::validDataProvider();
-        $key = array_key_first($goodMember);
-        $value = $goodMember[$key];
+        // GIVEN
+        // Have this information about a member :
+        // 'John Doe', 'john.goe@mail.com', 'password', '/upload/avatars/avatar.png',
+        // self::$date, self::$date, 0, MemberStatusEnum::VALIDATED
 
-        // And derivate it to n*field + the name of each getter and value to test
-        $getterArray = [];
-        foreach (self::$fieldName as $field) {
-            $method = 'get' . substr_replace($field, strtoupper(substr($field, 0, 1)), 0, 1);
-            $getterArray[$method] = array_merge([$method, $field], $value);
-        }
-
-        return $getterArray;
-    }
-
-    public static function setterProvider(): array
-    {
-        // We take valid Data Set
-        $goodMember = self::validDataProvider();
-        $key = array_key_first($goodMember);
-        $value = $goodMember[$key];
-
-        // And derivate it to n*field + the name of each setter and value to test
-        $setterArray = [];
-        foreach (self::$fieldName as $field) {
-            $method = 'set' . substr_replace($field, strtoupper(substr($field, 0, 1)), 0, 1);
-            $setterArray[$method] = array_merge([$method, $field], $value);
-        }
-
-        return $setterArray;
-    }
-
-    #[DataProvider('validDataProvider')]
-    public function testCanCreateAValidNewMemberEntity(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // Given valid informations on create a new MemberEntity
+        // WHEN
+        // Create MemberEntity using constructor
         $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
+            'John Doe',
+            'john.goe@mail.com',
+            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            '/upload/avatars/avatar.png',
+            self::$date,
+            self::$date,
+            0,
+            MemberStatusEnum::VALIDATED
         );
 
-        // Expected MemberEntity is valid
-
-        // A memberEntity is a child of Green\TomTroc\Entity\MemberEntity
+        // EXPECT
+        // $member is a child of Green\TomTroc\Entity\MemberEntity
         $this->assertSame('Green\TomTroc\Entity\MemberEntity', get_class($member));
-
-        // It has his username
-        $this->assertSame($username, $member->getUsername());
-
-        // It has his mail
-        $this->assertSame($email, $member->getEmail());
-
-        // It has his password hash
-        $this->assertSame($passwordHash, $member->getPasswordHash());
-
-        // It has his avatar Path
-        $this->assertSame($avatarPath, $member->getAvatarPath());
-
-        // It has his creation date, representing the date of his creation
-        $this->assertSame($createdAt, $member->getCreatedAt());
-
-        // It has his update date, representing the date of his last update
-        $this->assertSame($updatedAt, $member->getUpdatedAt());
-
-        // It has his status, 'NOT-VALIDATED' or 'VALIDATED'
-        $this->assertSame($status, $member->getStatus());
+        // can getUsername()
+        $this->assertSame('John Doe', $member->getUsername());
+        // can getEmail()
+        $this->assertSame('john.goe@mail.com', $member->getEmail());
+        // can getPasswordHash()
+        $this->assertTrue(password_verify('password', $member->getPasswordHash()));
+        // can getAvatarPath()
+        $this->assertSame('/upload/avatars/avatar.png', $member->getAvatarPath());
+        // can getCreatedAt()
+        $this->assertSame(self::$dateFormatted, $member->getCreatedAt());
+        // can getUpdatedAt()
+        $this->assertSame(self::$dateFormatted, $member->getUpdatedAt());
+        // can getStatus()
+        $this->assertSame(MemberStatusEnum::VALIDATED, $member->getStatus());
     }
 
-    #[DataProvider('invalidDataProvider')]
-    public function testAnAppropriateExceptionIsThrownWhenInvalidFieldIsPassedForCreateANewMemberEntity(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // We expect a RuntimeException
+    public function testGetters()
+    {
+        // GIVEN
+        // Have $this->validMember set by setUp()
+
+        // WHEN
+        // Use getters
+        // EXPECT
+        // Getters will show $this->validMember informations
+        $this->assertSame('John Doe', $this->validMember->getUserName());
+        $this->assertSame('john.doe@mail.com', $this->validMember->getEmail());
+        $this->assertTrue(password_verify('password', $this->validMember->getPasswordHash()));
+        $this->assertSame('/upload/avatars/avatar.png', $this->validMember->getAvatarPath());
+        $this->assertSame(self::$dateFormatted, $this->validMember->getCreatedAt());
+        $this->assertSame(self::$dateFormatted, $this->validMember->getUpdatedAt());
+        $this->assertSame(0, $this->validMember->getNotificationCount());
+        $this->assertSame(MemberStatusEnum::VALIDATED, $this->validMember->getStatus());
+    }
+
+    public function testSetters()
+    {
+        // GIVEN
+        // Have $this->validMember set by setUp()
+
+        // WHEN
+        // Use setters
+        $this->validMember->setUserName('John Doedoe');
+        $this->validMember->setEmail('john.doedoe@mail.com');
+        $this->validMember->setPasswordHash(
+            password_hash('newpassword', Settings::get(Settings::APP_SECURITY_HASH_ALGO))
+        );
+        $this->validMember->setAvatarPath('/upload/avatars/newavatar.png');
+        $this->validMember->setCreatedAt(self::$date);
+        $this->validMember->setUpdatedAt(self::$date);
+        $this->validMember->setNotificationCount(10);
+        $this->validMember->setStatus(MemberStatusEnum::VALIDATED);
+
+        // EXPECT
+        // Getters will show the same informations
+        $this->assertSame('John Doedoe', $this->validMember->getUserName());
+        $this->assertSame('john.doedoe@mail.com', $this->validMember->getEmail());
+        $this->assertTrue(password_verify('newpassword', $this->validMember->getPasswordHash()));
+        $this->assertSame('/upload/avatars/newavatar.png', $this->validMember->getAvatarPath());
+        $this->assertSame(self::$dateFormatted, $this->validMember->getCreatedAt());
+        $this->assertSame(self::$dateFormatted, $this->validMember->getUpdatedAt());
+        $this->assertSame(10, $this->validMember->getNotificationCount());
+        $this->assertSame(MemberStatusEnum::VALIDATED, $this->validMember->getStatus());
+    }
+
+    #[TestDox('validateField() return RuntimeException on invalid field at new MemberEntity() constructor')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldAtMemberEntityConstructor()
+    {
+        // GIVEN
+        // Have this information about a member :
+        // 'John Doe', 'john.goe@mail.com', 'password', '/upload/avatars/avatar.png',
+        // self::$date, self::$date, 0, MemberStatusEnum::VALIDATED
+
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
 
-        // When a field is invalid at MemberEntity creation
+        // WHEN
+        // avatarPath is invalid at MemberEntity creation
         $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
+            'JohnDoe',
+            'john.goe@mail.com',
+            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            '/../../../etc/shadow',
+            self::$date,
+            self::$date,
+            0,
+            MemberStatusEnum::VALIDATED
         );
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetUsername(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setUsername()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetUsername()
+    {
+        // GIVEN
+        // Have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageMatches('/username must only contain character in a-z, A-Z, 0-9, _ or -/');
+        // And an appropriate error message
+        $this->expectExceptionMessageMatches('/username must only contain 50 characters in a-z, A-Z, 0-9, _ or -/');
 
-        $member->setUserName('Bad+Username');
+        // WHEN
+        // a field is invalid at setUserName()
+        $this->validMember->setUserName('Bad+Username');
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetEmail(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setEmail()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetEmail()
+    {
+        // GIVEN
+        // Have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/email is not a valid email/');
 
-        $member->setEmail('Bad@@.com');
+        // WHEN
+        // a field is invalid at setEmail()
+        $this->validMember->setEmail('Bad@@.com');
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetPasswordHash(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setPasswordHash()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetPasswordHash()
+    {
+        // GIVEN we have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/passwordHash is not a valid bcrypt hash/');
 
-        $member->setPasswordHash('Bad+Password');
+        // WHEN
+        // a field is invalid at setPasswordHash()
+        $this->validMember->setPasswordHash('Bad+Password');
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetAvatarPath(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setAvatarPath()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetAvatarPath()
+    {
+        // GIVEN we have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/avatarPath must be stored in \/upload\/avatars\/,' .
             ' contain only a-z, A-Z or 0-9, and have .png extension/');
 
-        $member->setAvatarPath('/../../../passwd');
+        // WHEN
+        // a field is invalid at setAvatarPath()
+        $this->validMember->setAvatarPath('/../../../passwd');
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetCreatedAt(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setCreatedAt()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetCreatedAt()
+    {
+        // GIVEN we have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/createdAt must be before now and afer 110 years ago/');
 
-        $member->setCreatedAt(new DateTime('200 year ago'));
+        // WHEN
+        // a field is invalid at setCreatedAt()
+        $this->validMember->setCreatedAt(new DateTime('200 year ago'));
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetUpdatedAt(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setUpdatedAt()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetUpdatedAt()
+    {
+        // GIVEN we have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/updatedAt must be before now and afer 110 years ago/');
 
-        $member->setUpdatedAt(new DateTime('200 year ago'));
+        // WHEN
+        // a field is invalid at setUpdatedAt()
+        $this->validMember->setUpdatedAt(new DateTime('200 year ago'));
     }
 
-    #[DataProvider('validDataProvider')]
-    public function testAnAppropriateExceptionIsThrownByValidateFieldOnSetNotificationCount(
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // When a field is invalid at MemberEntity creation
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
+    #[TestDox('validateField() return RuntimeException on invalid field on setNotificationCount()')]
+    public function testValidateFieldReturnExceptionOnInvalidFieldOnSetNotificationCount()
+    {
+        // GIVEN we have a $this->validMember set by setUp()
 
-        // We expect a RuntimeException
+        // EXPECT
+        // Have a RuntimeException
         $this->expectException(RuntimeException::class);
+        // And an appropriate error message
         $this->expectExceptionMessageMatches('/notificationCount must be >= 0/');
 
-        $member->setNotificationCount(-2);
-    }
-
-    #[DataProvider('getterProvider')]
-    public function testGettersReturnGoodData(
-        string $getter,
-        string $varName,
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-
-        // Given valid informaton about a Member
-
-        // When instanciate a new MemberEntity with this informations
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
-
-        // Getter will show the same informations
-        $this->assertSame($$varName, $member->$getter());
-    }
-
-    #[DataProvider('setterProvider')]
-    public function testSettersSetWellData(
-        string $setter,
-        string $varName,
-        string $username,
-        string $email,
-        string $passwordHash,
-        string $avatarPath,
-        DateTime $createdAt,
-        DateTime $updatedAt,
-        int $notificationCount,
-        MemberStatusEnum $status
-    ) {
-        // Given a memberEntity
-        $member = new MemberEntity(
-            $username,
-            $email,
-            $passwordHash,
-            $avatarPath,
-            $createdAt,
-            $updatedAt,
-            $notificationCount,
-            $status
-        );
-
-        $getter = substr_replace($setter, 'g', 0, 1);
-
-        // When a setter change a property, Getter will show the new property
-        switch ($varName) {
-            case 'createdAt':
-                $member->$setter(date_create('yesterday'));
-
-                $this->assertEquals(date_create('yesterday'), $member->$getter());
-                break;
-
-            case 'updatedAt':
-                $member->$setter(date_create('yesterday'));
-
-                $this->assertEquals(date_create('yesterday'), $member->$getter());
-                break;
-
-            case 'status':
-                $member->$setter(MemberStatusEnum::NOTVALIDATED);
-
-                $this->assertEquals(MemberStatusEnum::NOTVALIDATED, $member->$getter());
-                break;
-
-            case 'passwordHash':
-                $member->$setter('$2y$12$fbnWIaikClpP97zlHyGxwunusDbEv9Mm5ERF613x8t3zydOJjTq5.');
-
-                $this->assertEquals('$2y$12$fbnWIaikClpP97zlHyGxwunusDbEv9Mm5ERF613x8t3zydOJjTq5.', $member->$getter());
-                break;
-
-            case 'avatarPath':
-                $member->$setter('/upload/avatars/newimage.png');
-
-                $this->assertEquals('/upload/avatars/newimage.png', $member->$getter());
-                break;
-
-            case 'notificationCount':
-                $member->$setter(10);
-
-                $this->assertEquals(10, $member->$getter());
-                break;
-
-            default:
-                // Validate username and email
-                $member->$setter('1' . $$varName);
-
-                $this->assertSame('1' . $$varName, $member->$getter());
-        }
+        // WHEN
+        // a field is invalid at setNotificationCount()
+        $this->validMember->setNotificationCount(-2);
     }
 }

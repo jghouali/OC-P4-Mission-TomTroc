@@ -23,11 +23,15 @@ class Settings
     // Configuration keys constants
     public const APP_NAME = 'app.name';
     public const APP_DEV = 'app.dev';
+    public const APP_TIMEZONE = 'app.timezone';
+    public const APP_SECURITY_HASH_ALGO = 'app.security.hash_algo';
     public const APP_MEMBER_REPOSITORY = 'app.memberRepository';
     public const APP_BOOK_REPOSITORY = 'app.bookRepository';
     public const APP_MESSAGE_REPOSITORY = 'app.messageRepository';
     public const DB_STORAGE = 'db.storage';
     public const DB_OPTIONS = 'db.options';
+    public const DB_FETCHALL_MODE = 'db.fetchall_mode';
+    public const DB_FETCH_MODE = 'db.fetch_mode';
     public const DB_DSN = 'db.dsn';
     public const DB_USER = 'db.username';
     public const DB_PASSWORD = 'db.password';
@@ -41,6 +45,8 @@ class Settings
                 Settings::get(Settings::DB_USER),
                 Settings::get(Settings::DB_PASSWORD),
                 Settings::get(Settings::DB_OPTIONS),
+                Settings::get(Settings::DB_FETCHALL_MODE),
+                Settings::get(Settings::DB_FETCH_MODE),
             );
             self::$dbManager->open();
         }

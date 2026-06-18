@@ -13,4 +13,5 @@ enum ValidatorEnum: string
     case email = 'email';
     case humanDate = 'humanDate';
     case intCounter = 'intCounter';
+    case textContent = 'textContent';
 }

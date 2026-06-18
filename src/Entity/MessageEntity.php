@@ -26,7 +26,7 @@ class MessageEntity extends AbstractEntity implements EntityInterface
         MessageStatusEnum $isRead,
     ) {
 
-        $this->content = $this->validateField('content', $content, ValidatorEnum::alphanumeric_150);
+        $this->content = $this->validateField('content', $content, ValidatorEnum::textContent);
         $this->sentAt = $this->validateField('sentAt', $sentAt, ValidatorEnum::humanDate);
         $this->modifiedAt = $this->validateField('modifiedAt', $modifiedAt, ValidatorEnum::humanDate);
         $this->fromMember = $fromMember;
@@ -54,7 +54,7 @@ class MessageEntity extends AbstractEntity implements EntityInterface
 
     public function setContent(string $content): void
     {
-        $this->content = $this->validateField('content', $content, ValidatorEnum::alphanumeric_150);
+        $this->content = $this->validateField('content', $content, ValidatorEnum::textContent);
     }
 
     public function setIsRead(MessageStatusEnum $isRead): void
