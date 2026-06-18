@@ -6,14 +6,15 @@ namespace Tests\Repository;
 
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\BookEntity;
-use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\BookStatusEnum;
-use Green\TomTroc\Enum\MemberStatusEnum;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
+use Tests\Entity\BookEntityTest;
+use Tests\Entity\MemberEntityTest;
 
 class BookRepositoryTest extends TestCase
 {
+    // PHPunit fixtures
     public static function setUpBeforeClass(): void
     {
         Settings::addSettingsFile(ROOT_DIR . '/config/custom.php');
@@ -40,24 +41,14 @@ class BookRepositoryTest extends TestCase
         Settings::getMemberRepository()->deleteAll();
     }
 
-    #[TestDox('Save a Book with valid data and delete it')]
-    public function testCanSaveAndDeleteABook()
+    #[TestDox('insert() and delete()')]
+    public function testInsertAndDeleteBook(): void
     {
-        // GIVEN that table books is empty
+        // GIVEN
+        // books table is empty
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // and we have this book
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
-        Settings::getMemberRepository()->insert($member);
-
+        // And have a book with his member
+        $member = MemberEntityTest::instanciateValidMember();
         $book = new BookEntity(
             'Titre duLivre',
             'JeandelaFontaine',
@@ -66,256 +57,281 @@ class BookRepositoryTest extends TestCase
             BookStatusEnum::AVAILABLE,
             $member
         );
-        //in the db
-        Settings::getBookRepository()->insert($book);
-        // $book = Settings::getBookRepository()->findByTitle($book->getTitle());
 
-        // // EXPECT it is stored in db and there is now one row in table books
-        $this->assertSame(1, count(Settings::getBookRepository()->findAll()));
+        // WHEN
+        // insert() it in db
+        Settings::getMemberRepository()->insert($member);
+        $result = Settings::getBookRepository()->insert($book);
 
-        // // WHEN now, we delete it
-        Settings::getBookRepository()->delete($book);
+        // EXPECT
+        // return true
+        $this->assertTrue($result);
+        // And there is now one row in books table
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 1);
 
-        // // EXPECT there is 0 row in book table
-        $this->assertSame(0, count(Settings::getBookRepository()->findAll()));
+        // WHEN
+        // now, delete() it
+        $result2 = Settings::getBookRepository()->delete($book);
 
-        Settings::getMemberRepository()->delete($member);
+        // EXPECT
+        // return true
+        $this->assertTrue($result2);
+        // And there is now 0 row in books table
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
     }
 
-    #[TestDox('FindById and ensure getters gives the correct data')]
-    public function testFindById()
+    #[TestDox('FindAll() books')]
+    public function testFindAll(): void
     {
-        // GIVEN that table books is empty
+        // GIVEN
+        // books table is empty
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // and we have this member
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
+        // And we have this member
+        $member = MemberEntityTest::instanciateValidMember();
+        // In db
         Settings::getMemberRepository()->insert($member);
-        // and this book
-        $book = new BookEntity(
-            'Titre duLivre1',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        // stored in db
-        Settings::getBookRepository()->insert($book);
+        // And 2 books
+        $book1 = BookEntityTest::instanciateValidBook();
+        $book1->setTitle('Titre1');
+        $book1->setAuthor('Jean de la Fontaine');
+        $book1->setFromMember($member);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setTitle('Titre2');
+        $book2->setAuthor('Jean Jacques Rousseau');
+        $book2->setFromMember($member);
+        // In db
+        Settings::getBookRepository()->insert($book1);
+        Settings::getBookRepository()->insert($book2);
 
-        // WHEN we search for it with findByTitle
-        $book2 = Settings::getBookRepository()->findById($book->getId());
-
-        // EXPECT all data retrieve are good
-        $this->assertSame($book->getTitle(), $book2->getTitle());
-        $this->assertSame($book->getAuthor(), $book2->getAuthor());
-        $this->assertSame($book->getImagePath(), $book2->getImagePath());
-        $this->assertSame($book->getDescription(), $book2->getDescription());
-        $this->assertSame($book->getAvailability(), $book2->getAvailability());
-        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
+        // WHEN
+        // Use findAll()
+        // EXPECT
+        // retieve 2 books
+        $this->assertSame(2, count(Settings::getBookRepository()->findAll()));
     }
 
-    #[TestDox('FindByTitle and ensure getters gives the correct data')]
-    public function testFindByTitle()
+    #[TestDox('FindAllWhere(\'author\', \'LIKE\', \'%Jean%\') books')]
+    public function testFindAllWhere(): void
     {
-        // GIVEN that table books is empty
+        // GIVEN
+        // books table is empty
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // and we have this member
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
+        // And have this member
+        $member = MemberEntityTest::instanciateValidMember();
+        // In db
         Settings::getMemberRepository()->insert($member);
-        // and this book
-        $book = new BookEntity(
-            'Titre duLivre1',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        // stored in db
-        Settings::getBookRepository()->insert($book);
-
-        // WHEN we search for it with findByTitle
-        $book2 = Settings::getBookRepository()->findByTitle($book->getTitle());
-
-        // EXPECT all data retrieve are good
-        $this->assertSame($book->getTitle(), $book2->getTitle());
-        $this->assertSame($book->getAuthor(), $book2->getAuthor());
-        $this->assertSame($book->getImagePath(), $book2->getImagePath());
-        $this->assertSame($book->getDescription(), $book2->getDescription());
-        $this->assertSame($book->getAvailability(), $book2->getAvailability());
-        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
-    }
-
-    #[TestDox('FindAllWhere can find books by column and return the exact count of books')]
-    public function testFindAllWhere()
-    {
-        // GIVEN that table books is empty
-        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // and we have this member
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
-        Settings::getMemberRepository()->insert($member);
-        // and these 4 books
-        $book1 = new BookEntity(
-            'Titre duLivre1',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        $book2 = new BookEntity(
-            'Titre duLivre2',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        $book3 = new BookEntity(
-            'Titre duLivre3',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        $book4 = new BookEntity(
-            'Titre duLivre4',
-            'MatthieudelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-
-        // stored in db
+        // And 4 books
+        $book1 = BookEntityTest::instanciateValidBook();
+        $book1->setTitle('Titre1');
+        $book1->setAuthor('Jean de la Fontaine');
+        $book1->setFromMember($member);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setTitle('Titre2');
+        $book2->setAuthor('Jean Jacques Rousseau');
+        $book2->setFromMember($member);
+        $book3 = BookEntityTest::instanciateValidBook();
+        $book3->setTitle('Titre3');
+        $book3->setAuthor('Jean Guy');
+        $book3->setFromMember($member);
+        $book4 = BookEntityTest::instanciateValidBook();
+        $book4->setTitle('Titre4');
+        $book4->setAuthor('Marcel Pagnol');
+        $book4->setFromMember($member);
+        // In db
         Settings::getBookRepository()->insert($book1);
         Settings::getBookRepository()->insert($book2);
         Settings::getBookRepository()->insert($book3);
         Settings::getBookRepository()->insert($book4);
 
-        // GIVEN books are on db
+        // WHEN
+        // Use findAll()
+        // EXPECT
+        // retieve 4 books
         $this->assertSame(4, count(Settings::getBookRepository()->findAll()));
 
-        // WHEN we use findAllWhere() with : author LIKE '%Jean%'
-        // EXPECT we retieve 3 books
-        $this->assertSame(3, count(Settings::getBookRepository()->findAllWhere('author', '=', 'JeandelaFontaine')));
+        // WHEN
+        // Use findAllWhere() with : author LIKE '%Jean%'
+        // EXPECT
+        // retieve 3 books
+        $this->assertSame(3, count(Settings::getBookRepository()->findAllWhere('author', 'LIKE', '%Jean%')));
     }
 
-    #[TestDox('FindAllWhere cannot give an inexisting column')]
-    public function testFindAllWhereInexistingColumn()
+    #[TestDox('FindAllWhere() return [] with invalid informations')]
+    public function testFindAllWhereInvalidData(): void
     {
-        // GIVEN that table books is empty
-        // and we have this member
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // And have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
         Settings::getMemberRepository()->insert($member);
-        // and these 4 books
-        $book = new BookEntity(
-            'Titre duLivre1',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
+        // and this books
+        $book = BookEntityTest::instanciateValidBook();
         $book->setTitle('jean');
         $book->setAuthor('jeanjean');
+        $book->setFromMember($member);
+        // in db
         Settings::getBookRepository()->insert($book);
-
-        // we have this book in db
         $this->assertSame(1, count(Settings::getBookRepository()->findAll()));
 
-        // WHEN we use findAllWhere() with column that do not exist : auth LIKE '%Jean%'
-        // EXPECT we retieve 0 book  // this comportement need to change
+        // WHEN
+        // findAllWhere() with column that does not exist : auth LIKE '%Jean%'
+        // EXPECT
+        // retieve 0 book  // this comportement may change
         $this->assertSame(0, count(Settings::getBookRepository()->findAllWhere('auth', 'LIKE', '%Jean%')));
 
-        // WHEN we use findAllWhere() with operator
+        // WHEN
+        // findAllWhere() with operator
         // not in ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'] : author + '%Jean%'
-        // EXPECT we retieve 0 book  // this comportement need to change
+        // EXPECT
+        // retieve 0 book  // this comportement may change
         $this->assertSame(0, count(Settings::getBookRepository()->findAllWhere('author', '+', '%Jean%')));
     }
 
-    #[TestDox('Update a book and ensure getters send the same data')]
-    public function testUpdate()
+    #[TestDox('FindById()')]
+    public function testFindById(): void
     {
-        // GIVEN that table books is empty
+        // GIVEN
+        // books table is empty
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // and this user exist in db
-        $member = new MemberEntity(
-            'Jean',
-            'jean@mail.com',
-            '$2y$12$E//8i7U3.5jN0/bHRFPD0ek.1EQjoBXHjbrL0ttB.XwYMA78xpgXu',
-            '/upload/avatars/cnsk4qcds54xvx5.png',
-            date_create('1 days ago 12:00'),
-            date_create('1 days ago 12:00'),
-            0,
-            MemberStatusEnum::NOTVALIDATED
-        );
+        // And have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
         Settings::getMemberRepository()->insert($member);
-        // and this book
-        $book = new BookEntity(
-            'Titre duLivre1',
-            'JeandelaFontaine',
-            '/upload/books/titreDuLivre.png',
-            'cest une histoire affabulante',
-            BookStatusEnum::AVAILABLE,
-            $member
-        );
-        $book->setTitle('jean');
-        $book->setAuthor('jeanjean');
+        // and this book in db
+        $book = BookEntityTest::instanciateValidBook();
+        $book->setFromMember($member);
         Settings::getBookRepository()->insert($book);
 
-        // WHEN we update it on db
-        $book2 = Settings::getBookRepository()->findByTitle($book->getTitle());
-        $book2->setTitle('Autobiographie de John Doe');
-        $book2->setAuthor('John Doe');
-        $book2->setImagePath('/upload/books/johndoe.png');
-        $book2->setDescription('cest incroyable');
-        $book2->setAvailability(BookStatusEnum::NOTAVAILABLE);
+        // WHEN
+        // findById()
+        $book2 = Settings::getBookRepository()->findById($book->getId());
 
+        // EXPECT
+        // findById() show $book informations
+        $this->assertSame($book->getTitle(), $book2->getTitle());
+        $this->assertSame($book->getAuthor(), $book2->getAuthor());
+        $this->assertSame($book->getImagePath(), $book2->getImagePath());
+        $this->assertSame($book->getDescription(), $book2->getDescription());
+        $this->assertSame($book->getAvailability(), $book2->getAvailability());
+        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
+    }
+
+    #[TestDox('FindByTitle()')]
+    public function testFindByTitle(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // and we have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
+        Settings::getMemberRepository()->insert($member);
+        // and this book in db
+        $book = BookEntityTest::instanciateValidBook();
+        $book->setFromMember($member);
+        Settings::getBookRepository()->insert($book);
+
+        // WHEN
+        // findByTitle()
+        $book2 = Settings::getBookRepository()->findByTitle($book->getTitle());
+
+        // EXPECT
+        // findByTitle() show $book informations
+        $this->assertSame($book->getTitle(), $book2->getTitle());
+        $this->assertSame($book->getAuthor(), $book2->getAuthor());
+        $this->assertSame($book->getImagePath(), $book2->getImagePath());
+        $this->assertSame($book->getDescription(), $book2->getDescription());
+        $this->assertSame($book->getAvailability(), $book2->getAvailability());
+        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
+    }
+
+    #[TestDox('FindAllByMember()')]
+    public function testFindAllByMember(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // and we have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
+        Settings::getMemberRepository()->insert($member);
+        // and these 2 books
+        $book = BookEntityTest::instanciateValidBook();
+        $book->setFromMember($member);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setTitle('Titre2');
+        $book2->setFromMember($member);
+        // stored in db
+        Settings::getBookRepository()->insert($book);
+        Settings::getBookRepository()->insert($book2);
+
+        // WHEN
+        // findByMember()
+        $arrayBook = Settings::getBookRepository()->findAllByMember($member);
+
+        // EXPECT
+        // retrieve 2 books
+        $this->assertTrue(count($arrayBook) === 2);
+    }
+
+    #[TestDox('FindAllByAvailability()')]
+    public function testFindByAvailability(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // and we have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
+        Settings::getMemberRepository()->insert($member);
+        // and these 2 books
+        $book = BookEntityTest::instanciateValidBook();
+        $book->setFromMember($member);
+        $book->setAvailability(BookStatusEnum::AVAILABLE);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setTitle('Titre2');
+        $book2->setFromMember($member);
+        $book2->setAvailability(BookStatusEnum::NOTAVAILABLE);
+        // stored in db
+        Settings::getBookRepository()->insert($book);
+        Settings::getBookRepository()->insert($book2);
+
+        // WHEN
+        // findByMember()
+        $arrayBook = Settings::getBookRepository()->findAllByAvailability(BookStatusEnum::AVAILABLE);
+
+        // EXPECT
+        // retrieve 2 books
+        $this->assertTrue(count($arrayBook) === 1);
+    }
+
+    #[TestDox('update()')]
+    public function testUpdate(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // and we have this member in db
+        $member = MemberEntityTest::instanciateValidMember();
+        Settings::getMemberRepository()->insert($member);
+        // and this book
+        $book = BookEntityTest::instanciateValidBook();
+        $book->setFromMember($member);
+        Settings::getBookRepository()->insert($book);
+
+        // WHEN
+        // update() it
+        $book2 = Settings::getBookRepository()->findByTitle($book->getTitle());
+        $book2->setTitle('Titre mis a jour');
+        $book2->setAuthor('auteur mis a jour');
+        $book2->setImagePath('/upload/books/johndoemaj.png');
+        $book2->setDescription('description mis a jour');
+        $book2->setAvailability(BookStatusEnum::NOTAVAILABLE);
         Settings::getBookRepository()->update($book2->getId(), $book2);
 
-        // EXPECT getters give the data updated
-        $this->assertSame('Autobiographie de John Doe', $book2->getTitle());
-        $this->assertSame('John Doe', $book2->getAuthor());
-        $this->assertSame('/upload/books/johndoe.png', $book2->getImagePath());
-        $this->assertSame('cest incroyable', $book2->getDescription());
+        // EXPECT
+        // getters give the data updated
+        $this->assertSame('Titre mis a jour', $book2->getTitle());
+        $this->assertSame('auteur mis a jour', $book2->getAuthor());
+        $this->assertSame('/upload/books/johndoemaj.png', $book2->getImagePath());
+        $this->assertSame('description mis a jour', $book2->getDescription());
         $this->assertSame(BookStatusEnum::NOTAVAILABLE, $book2->getAvailability());
     }
 }
