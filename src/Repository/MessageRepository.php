@@ -37,14 +37,14 @@ class MessageRepository
         return $dbManager->deleteAll('messages');
     }
 
-    public function insert(MessageEntity $message): bool
+    public function insert(MessageEntity $message): MessageEntity|false
     {
         $dbManager = Settings::getDbManager();
 
         $lastId = $dbManager->insert('messages', $message->toArray());
         if (is_int($lastId)) {
             $message->setId($lastId);
-            return true;
+            return $message;
         }
 
         return false;
@@ -89,20 +89,24 @@ class MessageRepository
         return $messages;
     }
 
-    public function findById(int $id): MessageEntity
+    public function findById(int $id): MessageEntity|null
     {
         $dbManager = Settings::getDbManager();
         $result = $dbManager->findOne('messages', MessageEntity::getStorageIdName(), $id);
 
-        $message = new MessageEntity(
-            $result['content'],
-            Locales::getLocalDateTime($result['sent_at']),
-            Locales::getLocalDateTime($result['modified_at']),
-            Settings::getMemberRepository()->findById($result['fk_from_member_id']),
-            Settings::getMemberRepository()->findById($result['fk_to_member_id']),
-            MessageStatusEnum::tryFrom($result['is_read']),
-        );
-        $message->setId($result['message_id']);
+        if ($result !== []) {
+            $message = new MessageEntity(
+                $result['content'],
+                Locales::getLocalDateTime($result['sent_at']),
+                Locales::getLocalDateTime($result['modified_at']),
+                Settings::getMemberRepository()->findById($result['fk_from_member_id']),
+                Settings::getMemberRepository()->findById($result['fk_to_member_id']),
+                MessageStatusEnum::tryFrom($result['is_read']),
+            );
+            $message->setId($result['message_id']);
+        } else {
+            $message = null;
+        }
 
         return $message;
     }
@@ -112,6 +116,7 @@ class MessageRepository
         $dbManager = Settings::getDbManager();
         $results = $dbManager->findAllWhere('messages', 'fk_to_member_id', '=', "$recipientId");
 
+        $messagesArray = [];
         foreach ($results as $result) {
             $message = new MessageEntity(
                 $result['content'],
@@ -122,9 +127,37 @@ class MessageRepository
                 MessageStatusEnum::tryFrom($result['is_read']),
             );
             $message->setId($result['message_id']);
+            $messagesArray[] = $message;
         }
 
-        return $results;
+        return $messagesArray;
+    }
+
+    public function findAllByMember(int $senderId): array
+    {
+        $dbManager = Settings::getDbManager();
+        $results = $dbManager->findAllWhere(
+            'messages',
+            "fk_from_member_id = $senderId OR fk_to_member_id",
+            '=',
+            "$senderId ORDER BY sent_at"
+        );
+
+        $messagesArray = [];
+        foreach ($results as $result) {
+            $message = new MessageEntity(
+                $result['content'],
+                Locales::getLocalDateTime($result['sent_at']),
+                Locales::getLocalDateTime($result['modified_at']),
+                Settings::getMemberRepository()->findById($result['fk_from_member_id']),
+                Settings::getMemberRepository()->findById($result['fk_to_member_id']),
+                MessageStatusEnum::tryFrom($result['is_read']),
+            );
+            $message->setId($result['message_id']);
+            $messagesArray[] = $message;
+        }
+
+        return $messagesArray;
     }
 
     public function findAllBySender(int $senderId): array
@@ -132,6 +165,7 @@ class MessageRepository
         $dbManager = Settings::getDbManager();
         $results = $dbManager->findAllWhere('messages', 'fk_from_member_id', '=', "$senderId");
 
+        $messagesArray = [];
         foreach ($results as $result) {
             $message = new MessageEntity(
                 $result['content'],
@@ -142,9 +176,10 @@ class MessageRepository
                 MessageStatusEnum::tryFrom($result['is_read']),
             );
             $message->setId($result['message_id']);
+            $messagesArray[] = $message;
         }
 
-        return $results;
+        return $messagesArray;
     }
 
     public function findAllByIsRead(MessageStatusEnum $status): array
