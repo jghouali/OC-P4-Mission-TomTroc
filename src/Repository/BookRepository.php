@@ -9,6 +9,7 @@ use Green\TomTroc\Entity\BookEntity;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\BookStatusEnum;
 use PDOException;
+use RuntimeException;
 
 class BookRepository
 {
@@ -39,6 +40,9 @@ class BookRepository
 
     public function insert(BookEntity $book): bool
     {
+        if ($book->getFromMember()->getId() === null) {
+            throw new RuntimeException('Member Id is null');
+        }
 
         $dbManager = Settings::getDbManager();
 
@@ -146,13 +150,16 @@ class BookRepository
         return $book;
     }
 
-    public function findAllByMember(MemberEntity $member): array
+    public function findAllByMember(int|MemberEntity $member): array
     {
-        $dbManager = Settings::getDbManager();
-        $member = Settings::getMemberRepository()->findById($member->getId());
-        $results = $dbManager->findAllWhere('books', 'fk_member_id', '=', (string) $member->getId());
-
-        return $results;
+        if (is_int($member)) {
+            $id = $member;
+        } elseif ($member::class === 'Green\TomTroc\Entity\MemberEntity') {
+            $id = $member->getId();
+        } else {
+            throw new RuntimeException("$member is neither int or MemberEntity");
+        }
+        return Settings::getDbManager()->findAllWhere('books', 'fk_member_id', '=', (string) $id);
     }
 
     public function findAllByAvailability(BookStatusEnum $availability): array
