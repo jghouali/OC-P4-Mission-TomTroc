@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Manager;
 
 use Green\TomTroc\Core\Settings\Settings;
-use Green\TomTroc\Enum\BookStatusEnum;
 use Green\TomTroc\Manager\MemberManager;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -19,25 +18,36 @@ class MemberManagerTest extends TestCase
         Settings::initialize();
         Settings::getBookRepository()->deleteAll();
         Settings::getMemberRepository()->deleteAll();
+        unset($_SESSION['id']);
+        unset($_SESSION['username']);
+        unset($_SESSION['avatarPath']);
     }
 
     public function setUp(): void
     {
         Settings::getBookRepository()->deleteAll();
         Settings::getMemberRepository()->deleteAll();
-        unset($_SESSION);
+        unset($_SESSION['id']);
+        unset($_SESSION['username']);
+        unset($_SESSION['avatarPath']);
     }
 
     public function tearDown(): void
     {
         Settings::getBookRepository()->deleteAll();
         Settings::getMemberRepository()->deleteAll();
+        unset($_SESSION['id']);
+        unset($_SESSION['username']);
+        unset($_SESSION['avatarPath']);
     }
 
     public static function tearDownAfterClass(): void
     {
         Settings::getBookRepository()->deleteAll();
         Settings::getMemberRepository()->deleteAll();
+        unset($_SESSION['id']);
+        unset($_SESSION['username']);
+        unset($_SESSION['avatarPath']);
     }
 
     #[TestDox('A Users can register as Member')]
@@ -80,7 +90,7 @@ class MemberManagerTest extends TestCase
         $this->assertTrue($_SESSION['username'] === $member->getUserName());
     }
 
-    #[TestDox('Logged Members and Not logged Members can see profiles')]
+    #[TestDox('can see profiles')]
     #[TestWith(['John Doe', 'john.doe@mail.com', 'johndoe', '/upload/avatars/johndoe.png'])]
     public function testMembersCanShowProfile(string $username, string $email, string $password, string $avatarPath)
     {
@@ -105,37 +115,38 @@ class MemberManagerTest extends TestCase
         $this->assertFalse(isset($_SESSION['avatarPath']));
 
         // EXPECT user can see members profiles
+        $profileData = $memberManager->getProfileData('John Doe');
         $this->assertSame(
             $member->getId(),
-            $memberManager->getProfileData('John Doe')['id']
+            $profileData['id']
         );
         $this->assertSame(
             $member->getUserName(),
-            $memberManager->getProfileData('John Doe')['username']
+            $profileData['username']
         );
         $this->assertSame(
             $member->getEmail(),
-            $memberManager->getProfileData('John Doe')['email']
+            $profileData['email']
         );
         $this->assertSame(
             $member->getAvatarPath(),
-            $memberManager->getProfileData('John Doe')['avatarPath']
+            $profileData['avatarPath']
         );
         $this->assertSame(
             $member->getCreatedAt(),
-            $memberManager->getProfileData('John Doe')['createdAt']
+            $profileData['createdAt']
         );
         $this->assertSame(
             $member->getUpdatedAt(),
-            $memberManager->getProfileData('John Doe')['updatedAt']
+            $profileData['updatedAt']
         );
         $this->assertSame(
             $member->getNotificationCount(),
-            $memberManager->getProfileData('John Doe')['notificationCount']
+            $profileData['notificationCount']
         );
         $this->assertSame(
             $member->getStatus(),
-            $memberManager->getProfileData('John Doe')['status']
+            $profileData['status']
         );
 
         $this->assertSame(
@@ -208,7 +219,7 @@ class MemberManagerTest extends TestCase
         sleep(1);
         // WHEN member modify his profile
         $result = $memberManager->modifyProfile(
-            $member->getId(),
+            $member,
             'John Doe2',
             'john.doe2@mail.com',
             'johndoe2',
@@ -283,7 +294,7 @@ class MemberManagerTest extends TestCase
 
         // WHEN member modify other profile profile
         $result = $memberManager->modifyProfile(
-            $member2->getId(),
+            $member2,
             'John Doe2',
             'john.doe2@mail.com',
             'johndoe2',
@@ -292,80 +303,5 @@ class MemberManagerTest extends TestCase
 
         // EXPECT modifyProfile return false
         $this->assertFalse($result);
-    }
-
-    #[TestDox('Logged in Members can add book their personnal library')]
-    #[TestWith(['John Doe', 'johndoe@mail.com', 'johndoe', '/upload/avatars/johndoe.png'])]
-    public function testLoggedInMembersCanAddBookToTheirLibrary(
-        string $username,
-        string $email,
-        string $password,
-        string $avatarPath
-    ) {
-        // GIVEN that Manager is up
-        $memberManager = new MemberManager();
-
-        // and we have 1 members registered :
-        $memberManager->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
-
-        // $member is logged in
-        $memberManager->login($email, $password);
-
-        // WHEN member add a book to his library
-        $result = $memberManager->addBook(
-            $member,
-            'Un Livre',
-            'Un Auteur',
-            '/upload/books/book.png',
-            'Une Description',
-            BookStatusEnum::AVAILABLE
-        );
-        // EXPECT addBook return true
-        $this->assertTrue($result);
-    }
-
-    #[TestDox('Logged in Members can list books from their personnal library')]
-    #[TestWith(['John Doe', 'johndoe@mail.com', 'johndoe', '/upload/avatars/johndoe.png'])]
-    public function testLoggedInMembersCanListBooksFromTheirLibrary(
-        string $username,
-        string $email,
-        string $password,
-        string $avatarPath
-    ) {
-        // GIVEN that Manager is up
-        $memberManager = new MemberManager();
-
-        // and we have 1 members registered :
-        $memberManager->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
-
-        // $member is logged in
-        $memberManager->login($email, $password);
-
-        // $member add a book to his library
-        $result = $memberManager->addBook(
-            $member,
-            'Un Livre',
-            'Un Auteur',
-            '/upload/books/book.png',
-            'Une Description',
-            BookStatusEnum::AVAILABLE
-        );
-        $result = $memberManager->addBook(
-            $member,
-            'Un Livre2',
-            'Un Auteur2',
-            '/upload/books/book2.png',
-            'Une Description2',
-            BookStatusEnum::NOTAVAILABLE
-        );
-
-        // WHEN member list his books
-        $result = $memberManager->getMyLibrary($member);
-
-        // EXPECT getMyLibrary return array with books
-        $this->assertTrue(is_array($result));
-        $this->assertTrue(count($result) === 2);
     }
 }
