@@ -65,8 +65,8 @@ class MessageRepositoryTest extends TestCase
         $result = Settings::getMessageRepository()->insert($message);
 
         // EXPECT
-        // return true
-        $this->assertTrue($result);
+        // return MemberEntity
+        $this->assertSame('Green\TomTroc\Entity\MessageEntity', $result::class);
         // And there is now 1 row in messages table
         $this->assertSame(1, count(Settings::getMessageRepository()->findAll()));
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Manager;
 
+use Green\TomTroc\Core\Service\AuthentificationService;
 use Green\TomTroc\Entity\BookEntity;
-use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\BookStatusEnum;
 use Green\TomTroc\Repository\BookRepository;
 use RuntimeException;
@@ -13,37 +13,49 @@ use RuntimeException;
 class BookManager
 {
     private BookRepository $bookRepository;
+    private AuthentificationService $authentificationService;
 
-    public function __construct(BookRepository $bookRepository)
+    public function __construct(BookRepository $bookRepository, AuthentificationService $authentificationService)
     {
         $this->bookRepository = $bookRepository;
+        $this->authentificationService = $authentificationService;
     }
 
     public function addBook(
-        MemberEntity $member,
         string $title,
         string $author,
         string $imagePath,
         string $description,
         BookStatusEnum $availability
-    ): bool {
-        $book = new BookEntity(
-            $title,
-            $author,
-            $imagePath,
-            $description,
-            $availability,
-            $member
-        );
-        return $this->bookRepository->insert($book);
+    ): BookEntity|false {
+        $loggedMember = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedMember === null) {
+            throw new RuntimeException('You are not logged in');
+        } elseif ($loggedMember::class === 'Green\TomTroc\Entity\MemberEntity') {
+            $book = new BookEntity(
+                $title,
+                $author,
+                $imagePath,
+                $description,
+                $availability,
+                $loggedMember
+            );
+            return $this->bookRepository->insert($book);
+        } else {
+            throw new RuntimeException('Unknown error');
+        }
     }
 
     public function getMyLibrary(): array
     {
-        if (isset($_SESSION['id'])) {
-            return $this->bookRepository->findAllByMember($_SESSION['id']);
+        $member = $this->authentificationService->getCurrentLoggedMember();
+        if ($member === null) {
+            throw new RuntimeException('You are not logged in');
+        } elseif ($member::class === 'Green\TomTroc\Entity\MemberEntity') {
+            return $this->bookRepository->findAllByMember($member);
+        } else {
+            throw new RuntimeException('Unknown error');
         }
-        throw new RuntimeException('$_SESSION[\'id\'] is not set');
     }
 
     public function listAvailableBook(): array|bool
@@ -52,9 +64,13 @@ class BookManager
         return $result;
     }
 
-    public function getBookDetail(int $bookId): BookEntity|bool
+    public function getBookDetail(BookEntity|int $book): BookEntity|bool
     {
-        $result = $this->bookRepository->findById($bookId);
-        return $result;
+        if (is_int($book)) {
+            $bookId = $book;
+        } else {
+            $bookId = $book->getId();
+        }
+        return $this->bookRepository->findById($bookId);
     }
 }
