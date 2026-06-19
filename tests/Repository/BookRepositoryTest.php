@@ -67,7 +67,14 @@ class BookRepositoryTest extends TestCase
         // return true
         $this->assertTrue($result);
         // And there is now one row in books table
-        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 1);
+        $bookArray = Settings::getBookRepository()->findAll();
+        $this->assertSame(1, count($bookArray));
+        $this->assertSame($book->getTitle(), $bookArray[0]['title']);
+        $this->assertSame($book->getAuthor(), $bookArray[0]['author']);
+        $this->assertSame($book->getImagePath(), $bookArray[0]['image_path']);
+        $this->assertSame($book->getDescription(), $bookArray[0]['description']);
+        $this->assertSame($book->getAvailability()->value, $bookArray[0]['availability']);
+        $this->assertSame($book->getFromMember()->getId(), $bookArray[0]['fk_member_id']);
 
         // WHEN
         // now, delete() it
@@ -78,6 +85,31 @@ class BookRepositoryTest extends TestCase
         $this->assertTrue($result2);
         // And there is now 0 row in books table
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+    }
+
+    #[TestDox('insert() a Book with a member_id null throw exception')]
+    public function testInsertWithoutMemberIdException(): void
+    {
+        // GIVEN
+        // have a book with his member
+        $member = MemberEntityTest::instanciateValidMember();
+        $book = new BookEntity(
+            'Titre duLivre',
+            'JeandelaFontaine',
+            '/upload/books/titreDuLivre.png',
+            'cest une histoire affabulante',
+            BookStatusEnum::AVAILABLE,
+            $member
+        );
+
+        // EXPECT
+        // return true
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageMatches('/Member Id is null/');
+
+        // WHEN
+        // insert() it in db
+        $result = Settings::getBookRepository()->insert($book);
     }
 
     #[TestDox('FindAll() books')]

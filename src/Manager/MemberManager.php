@@ -6,21 +6,28 @@ namespace Green\TomTroc\Manager;
 
 use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Core\Settings\Settings;
-use Green\TomTroc\Entity\BookEntity;
 use Green\TomTroc\Entity\MemberEntity;
-use Green\TomTroc\Enum\BookStatusEnum;
 use Green\TomTroc\Enum\MemberStatusEnum;
+use Green\TomTroc\Repository\MemberRepository;
 use RuntimeException;
 
 class MemberManager
 {
+    private MemberRepository $memberRepository;
+    private string $passwordHashAlgorithm;
+
+    public function __construct()
+    {
+        $this->memberRepository = Settings::getMemberRepository();
+        $this->passwordHashAlgorithm = Settings::get(Settings::APP_SECURITY_HASH_ALGO, PASSWORD_DEFAULT);
+    }
     public function register(string $username, string $email, string $password, string $avatar_path): bool
     {
         $passwordHash = password_hash(
             $password,
-            Settings::get(Settings::APP_SECURITY_HASH_ALGO, PASSWORD_DEFAULT)
+            $this->passwordHashAlgorithm
         );
-        Settings::getMemberRepository()->insert(
+        return $this->memberRepository->insert(
             new MemberEntity(
                 $username,
                 $email,
@@ -32,12 +39,11 @@ class MemberManager
                 MemberStatusEnum::NOTVALIDATED
             )
         );
-        return true;
     }
 
     public function login(string $email, string $password): bool
     {
-        $member = Settings::getMemberRepository()->findByEmail($email);
+        $member = $this->memberRepository->findByEmail($email);
         $hash = $member->getPasswordHash();
 
         if (is_string($hash)) {
@@ -52,49 +58,32 @@ class MemberManager
         throw new RuntimeException('This email is not registered');
     }
 
-    public function modifyProfile(int $id, string $username, string $email, string $password, string $avatarPath): bool
+    public function isLoggedIn(MemberEntity $member): bool
     {
-        if ($_SESSION['id'] == $id) {
-            $member = Settings::getMemberRepository()->findById($id);
+        if (isset($_SESSION)) {
+            if (isset($_SESSION['id'])) {
+                if ($_SESSION['id'] == $member->getId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public function modifyProfile(
+        MemberEntity $member,
+        string $username,
+        string $email,
+        string $password,
+        string $avatarPath
+    ): bool {
+        if ($this->isLoggedIn($member)) {
             $member->setUserName($username);
             $member->setEmail($email);
             $member->setPasswordHash(password_hash($password, Settings::get(Settings::APP_SECURITY_HASH_ALGO)));
             $member->setAvatarPath($avatarPath);
-            Settings::getMemberRepository()->update($id, $member);
+            $this->memberRepository->update($member->getId(), $member);
             return true;
-        }
-        return false;
-    }
-
-    public function addBook(
-        MemberEntity $user,
-        string $title,
-        string $author,
-        string $imagePath,
-        string $description,
-        BookStatusEnum $availability
-    ): bool {
-        if ($_SESSION['id'] == $user->getId()) {
-            $book = new BookEntity(
-                $title,
-                $author,
-                $imagePath,
-                $description,
-                $availability,
-                $user
-            );
-            Settings::getBookRepository()->insert($book);
-            return true;
-        }
-        return false;
-    }
-
-    public function getMyLibrary(
-        MemberEntity $member
-    ): array|bool {
-        if ($_SESSION['id'] == $member->getId()) {
-            $result = Settings::getBookRepository()->findAllByMember($member);
-            return $result;
         }
         return false;
     }
@@ -102,7 +91,7 @@ class MemberManager
     public function memberExist(string $email): bool
     {
         return (
-            Settings::getMemberRepository()
+            $this->memberRepository
                 ->findByEmail($email)::class === 'Green\TomTroc\Entity\MemberEntity'
         );
     }
@@ -110,7 +99,7 @@ class MemberManager
     public function memberExistAndValidated(string $email): bool
     {
         return (
-            Settings::getMemberRepository()
+            $this->memberRepository
             ->findByEmail($email)
             ->getStatus() === MemberStatusEnum::VALIDATED
         );
@@ -118,7 +107,7 @@ class MemberManager
 
     public function getProfileData(string $username): array
     {
-        $member = Settings::getMemberRepository()->findByUsername($username);
+        $member = $this->memberRepository->findByUsername($username);
         $profile = [
             'id' => $member->getId(),
             'username' => $member->getUserName(),

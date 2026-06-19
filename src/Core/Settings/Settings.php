@@ -6,6 +6,8 @@ namespace Green\TomTroc\Core\Settings;
 
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
+use Green\TomTroc\Manager\BookManager;
+use Green\TomTroc\Manager\MemberManager;
 use Green\TomTroc\Repository\BookRepository;
 use Green\TomTroc\Repository\MemberRepository;
 use Green\TomTroc\Repository\MessageRepository;
@@ -16,8 +18,11 @@ class Settings
     private static string $defaultSettingsFile = ROOT_DIR . '/config/app.settings.php';
     private static array $settings = [];
     private static StorageInterface $dbManager;
-    private static MemberRepository $memberRepository;
+    private static BookManager $bookManager;
+    private static MemberManager $memberManager;
+    //private static MessageManager $messageManager;
     private static BookRepository $bookRepository;
+    private static MemberRepository $memberRepository;
     private static MessageRepository $messageRepository;
 
     // Configuration keys constants
@@ -50,9 +55,14 @@ class Settings
             );
             self::$dbManager->open();
         }
+        // Repositories
         self::$memberRepository = Settings::get(Settings::APP_MEMBER_REPOSITORY, new MemberRepository());
         self::$bookRepository = Settings::get(Settings::APP_BOOK_REPOSITORY, new BookRepository());
         self::$messageRepository = Settings::get(Settings::APP_MESSAGE_REPOSITORY, new MessageRepository());
+        // Managers
+        self::$memberManager = Settings::get(Settings::APP_MEMBER_REPOSITORY, new MemberManager());
+        self::$bookManager = Settings::get(Settings::APP_BOOK_REPOSITORY, new BookManager(self::$bookRepository));
+        //self::$messageManager = Settings::get(Settings::APP_MESSAGE_REPOSITORY, new MessageManager());
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -129,6 +139,36 @@ class Settings
     {
         if (isset(self::$memberRepository)) {
             return self::$memberRepository;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de BookManager on the settings
+    public static function getBookManager(): BookManager
+    {
+        if (isset(self::$bookManager)) {
+            return self::$bookManager;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de Message Manager on the settings
+    // public static function getMessageManager(): MessageManager
+    // {
+    //     if (isset(self::$messageManager)) {
+    //         return self::$messageManager;
+    //     } else {
+    //         throw new RuntimeException('Settings are not initialize');
+    //     }
+    // }
+
+    // Initialize de Member Manager on the settings
+    public static function getMemberManager(): MemberManager
+    {
+        if (isset(self::$memberManager)) {
+            return self::$memberManager;
         } else {
             throw new RuntimeException('Settings are not initialize');
         }
