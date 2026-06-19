@@ -40,17 +40,15 @@ class MemberRepository
         return $dbManager->deleteAll('members');
     }
 
-    public function insert(MemberEntity $member): bool
+    public function insert(MemberEntity $member): int|false
     {
         $dbManager = Settings::getDbManager();
 
         $lastId = $dbManager->insert('members', $member->toArray());
         if (is_int($lastId)) {
             $member->setId($lastId);
-            return true;
         }
-
-        return false;
+        return $lastId;
     }
 
     public function delete(MemberEntity $member): bool
@@ -160,12 +158,18 @@ class MemberRepository
         return $member;
     }
 
-    public function update(int $memberId, MemberEntity $member): bool
+    public function update(int $memberId, MemberEntity $member): MemberEntity|false
     {
         $dbManager = Settings::getDbManager();
 
         $member->setUpdatedAt(Locales::getLocalDateTime());
+        $result = $dbManager->update('members', $memberId, $member->toArray());
 
-        return $dbManager->update('members', $memberId, $member->toArray());
+        if ($result) {
+            $memberUpdated = $this->findById($memberId);
+            return $memberUpdated;
+        }
+
+        return $result;
     }
 }

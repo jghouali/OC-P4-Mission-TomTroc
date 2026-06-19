@@ -54,7 +54,7 @@ class PdoDatabase implements StorageInterface
 
     // This function get the entity to insert as an array,
     // unpack and insert it in db
-    public function insert(string $entity, array $data): int|bool
+    public function insert(string $entity, array $data): int|false
     {
         $columns = [];
         $values = [];

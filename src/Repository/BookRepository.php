@@ -38,7 +38,7 @@ class BookRepository
         return $dbManager->deleteAll('books');
     }
 
-    public function insert(BookEntity $book): bool
+    public function insert(BookEntity $book): BookEntity|false
     {
         if ($book->getFromMember()->getId() === null) {
             throw new RuntimeException('Member Id is null');
@@ -50,7 +50,7 @@ class BookRepository
         if (is_int($lastId)) {
             $book->setId($lastId);
 
-            return true;
+            return $book;
         }
 
         return false;
@@ -108,20 +108,24 @@ class BookRepository
         return $booksArray;
     }
 
-    public function findById(int $id): BookEntity
+    public function findById(int $id): BookEntity|false
     {
         $dbManager = Settings::getDbManager();
         $result = $dbManager->findOne('books', BookEntity::getStorageIdName(), $id);
 
-        $book = new BookEntity(
-            $result['title'],
-            $result['author'],
-            $result['image_path'],
-            $result['description'],
-            BookStatusEnum::tryFrom($result['availability']),
-            Settings::getMemberRepository()->findById($result['fk_member_id'])
-        );
-        $book->setId($result['book_id']);
+        if ($result === []) {
+            $book = false;
+        } else {
+            $book = new BookEntity(
+                $result['title'],
+                $result['author'],
+                $result['image_path'],
+                $result['description'],
+                BookStatusEnum::tryFrom($result['availability']),
+                Settings::getMemberRepository()->findById($result['fk_member_id'])
+            );
+            $book->setId($result['book_id']);
+        }
 
         return $book;
     }

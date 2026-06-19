@@ -65,7 +65,7 @@ class BookRepositoryTest extends TestCase
 
         // EXPECT
         // return true
-        $this->assertTrue($result);
+        $this->assertSame('Green\TomTroc\Entity\BookEntity', $result::class);
         // And there is now one row in books table
         $bookArray = Settings::getBookRepository()->findAll();
         $this->assertSame(1, count($bookArray));

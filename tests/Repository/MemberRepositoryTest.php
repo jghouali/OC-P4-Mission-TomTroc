@@ -51,7 +51,7 @@ class MemberRepositoryTest extends TestCase
 
         // EXPECT
         // return true
-        $this->assertTrue($result);
+        $this->assertTrue(is_int($result));
         // And there is now 1 row in members table
         $this->assertSame(1, count(Settings::getMemberRepository()->findAll()));
 

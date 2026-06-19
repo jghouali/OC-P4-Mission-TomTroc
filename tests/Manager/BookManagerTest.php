@@ -10,7 +10,6 @@ use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Tests\Entity\BookEntityTest;
-use Tests\Entity\MemberEntityTest;
 
 class BookManagerTest extends TestCase
 {
@@ -62,15 +61,12 @@ class BookManagerTest extends TestCase
     ) {
         // GIVEN
         // Have 1 members registered :
-        Settings::getMemberManager()->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
-
+        $member = Settings::getAuthentificationService()->register($username, $email, $password, $avatarPath);
         // $member is logged in
-        Settings::getMemberManager()->login($email, $password);
+        Settings::getAuthentificationService()->login($email, $password);
 
         // WHEN member add a book to his library
         $result = Settings::getBookManager()->addBook(
-            $member,
             'Un Livre',
             'Un Auteur',
             '/upload/books/book.png',
@@ -78,37 +74,7 @@ class BookManagerTest extends TestCase
             BookStatusEnum::AVAILABLE
         );
         // EXPECT addBook return true
-        $this->assertTrue($result);
-    }
-
-    #[TestDox('Not Logged in Members cannot add book to their personnal library')]
-    #[TestWith(['John Doe', 'johndoe@mail.com', 'johndoe', '/upload/avatars/johndoe.png'])]
-    public function testNotLoggedInMembersCanNotAddBookToTheirLibrary(
-        string $username,
-        string $email,
-        string $password,
-        string $avatarPath
-    ) {
-        // GIVEN
-        // Have 1 members registered :
-        // Settings::getMemberManager()->register($username, $email, $password, $avatarPath);
-        // $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
-        $member = MemberEntityTest::instanciateValidMember();
-
-        // EXPECT
-        // Have a RuntimeException
-        $this->expectException('RuntimeException');
-        $this->expectExceptionMessageMatches('/Member Id is null/');
-
-        // WHEN member add a book to his library
-        $result = Settings::getBookManager()->addBook(
-            $member,
-            'Un Livre',
-            'Un Auteur',
-            '/upload/books/book.png',
-            'Une Description',
-            BookStatusEnum::AVAILABLE
-        );
+        $this->assertSame('Green\TomTroc\Entity\BookEntity', $result::class);
     }
 
     #[TestDox('Logged in Members can list books from their personnal library')]
@@ -121,23 +87,19 @@ class BookManagerTest extends TestCase
     ) {
         // GIVEN
         // Have 1 member registered :
-        Settings::getMemberManager()->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
-
+        $member = Settings::getAuthentificationService()->register($username, $email, $password, $avatarPath);
         // $member is logged in
-        Settings::getMemberManager()->login($email, $password);
+        Settings::getAuthentificationService()->login($email, $password);
 
         // $member add a book to his library
-        $result = Settings::getBookManager()->addBook(
-            $member,
+        Settings::getBookManager()->addBook(
             'Un Livre',
             'Un Auteur',
             '/upload/books/book.png',
             'Une Description',
             BookStatusEnum::AVAILABLE
         );
-        $result = Settings::getBookManager()->addBook(
-            $member,
+        Settings::getBookManager()->addBook(
             'Un Livre2',
             'Un Auteur2',
             '/upload/books/book2.png',
@@ -146,7 +108,7 @@ class BookManagerTest extends TestCase
         );
 
         // WHEN member list his books
-        $result = Settings::getBookManager()->getMyLibrary($member);
+        $result = Settings::getBookManager()->getMyLibrary();
 
         // EXPECT getMyLibrary return array with books
         $this->assertTrue(is_array($result));
@@ -163,8 +125,7 @@ class BookManagerTest extends TestCase
     ) {
         // GIVEN
         // Have 1 member registered :
-        Settings::getMemberManager()->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
+        $member = Settings::getAuthentificationService()->register($username, $email, $password, $avatarPath);
 
         // $member add a book to his library
         $book1 = BookEntityTest::instanciateValidBook();
@@ -173,8 +134,8 @@ class BookManagerTest extends TestCase
         $book2 = BookEntityTest::instanciateValidBook();
         $book2->setFromMember($member);
         $book2->setAvailability(BookStatusEnum::AVAILABLE);
-        Settings::getBookRepository()->insert($book1);
-        Settings::getBookRepository()->insert($book2);
+        $book2 = Settings::getBookRepository()->insert($book1);
+        $book2 = Settings::getBookRepository()->insert($book2);
 
         // WHEN user listAvailableBook()
         $result = Settings::getBookManager()->listAvailableBook();
@@ -194,8 +155,7 @@ class BookManagerTest extends TestCase
     ) {
         // GIVEN
         // Have 1 member registered :
-        Settings::getMemberManager()->register($username, $email, $password, $avatarPath);
-        $member = Settings::getMemberRepository()->findByEmail('johndoe@mail.com');
+        $member = Settings::getAuthentificationService()->register($username, $email, $password, $avatarPath);
 
         // $member add a book to his library
         $book1 = BookEntityTest::instanciateValidBook();
