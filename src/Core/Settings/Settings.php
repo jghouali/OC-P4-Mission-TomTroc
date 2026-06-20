@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Settings;
 
+use Green\TomTroc\Controller\HomeController;
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Router\Router;
@@ -29,7 +30,7 @@ class Settings
     private static MessageRepository $messageRepository;
     private static AuthentificationService $authentificationService;
     private static Router $router;
-
+    private static HomeController $homeController;
     // Configuration keys constants
     public const APP_NAME = 'app.name';
     public const APP_DEV = 'app.dev';
@@ -43,6 +44,7 @@ class Settings
     public const APP_MESSAGE_MANAGER = 'app.messageManager';
     public const APP_SESSION_SERVICE = 'app.sessionService';
     public const APP_ROUTER = 'app.router';
+    public const APP_HOME_CONTROLLER = 'app.homeController';
     public const DB_STORAGE = 'db.storage';
     public const DB_OPTIONS = 'db.options';
     public const DB_FETCHALL_MODE = 'db.fetchall_mode';
@@ -66,40 +68,20 @@ class Settings
             self::$dbManager->open();
         }
         // Repositories
-        self::$memberRepository = Settings::get(
-            Settings::APP_MEMBER_REPOSITORY,
-            new MemberRepository()
-        );
-        self::$bookRepository = Settings::get(
-            Settings::APP_BOOK_REPOSITORY,
-            new BookRepository()
-        );
-        self::$messageRepository = Settings::get(
-            Settings::APP_MESSAGE_REPOSITORY,
-            new MessageRepository()
-        );
+        self::$memberRepository = new MemberRepository();
+        self::$bookRepository = new BookRepository();
+        self::$messageRepository = new MessageRepository();
+
         // Services
-        self::$authentificationService = Settings::get(
-            Settings::APP_SESSION_SERVICE,
-            new AuthentificationService()
-        );
+        self::$authentificationService = new AuthentificationService();
         // Managers
-        self::$memberManager = Settings::get(
-            Settings::APP_MEMBER_MANAGER,
-            new MemberManager(self::$memberRepository, self::$authentificationService)
-        );
-        self::$bookManager = Settings::get(
-            Settings::APP_BOOK_MANAGER,
-            new BookManager(self::$bookRepository, self::$authentificationService)
-        );
-        self::$messageManager = Settings::get(
-            Settings::APP_MESSAGE_MANAGER,
-            new MessageManager(self::$messageRepository, self::$authentificationService)
-        );
-        self::$router = Settings::get(
-            Settings::APP_ROUTER,
-            new Router()
-        );
+        self::$memberManager = new MemberManager(self::$memberRepository, self::$authentificationService);
+        self::$bookManager = new BookManager(self::$bookRepository, self::$authentificationService);
+        self::$messageManager = new MessageManager(self::$messageRepository, self::$authentificationService);
+        // Router
+        self::$router = new Router();
+        // Controllers
+        self::$homeController = new HomeController(self::$bookManager);
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -147,7 +129,7 @@ class Settings
         if (isset(self::$dbManager)) {
             return self::$dbManager;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$dbManager is not initialized');
         }
     }
 
@@ -157,7 +139,7 @@ class Settings
         if (isset(self::$bookRepository)) {
             return self::$bookRepository;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$bookRepository is not initialized');
         }
     }
 
@@ -167,7 +149,7 @@ class Settings
         if (isset(self::$messageRepository)) {
             return self::$messageRepository;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$messageRepository is not initialized');
         }
     }
 
@@ -177,7 +159,7 @@ class Settings
         if (isset(self::$memberRepository)) {
             return self::$memberRepository;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$memberRepository is not initialized');
         }
     }
 
@@ -187,7 +169,7 @@ class Settings
         if (isset(self::$authentificationService)) {
             return self::$authentificationService;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$authentificationService is not initialized');
         }
     }
 
@@ -197,7 +179,7 @@ class Settings
         if (isset(self::$bookManager)) {
             return self::$bookManager;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$bookManager is not initialized');
         }
     }
 
@@ -207,7 +189,7 @@ class Settings
         if (isset(self::$messageManager)) {
             return self::$messageManager;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$messageManager is not initialized');
         }
     }
 
@@ -217,7 +199,7 @@ class Settings
         if (isset(self::$memberManager)) {
             return self::$memberManager;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$memberManager is not initialized');
         }
     }
 
@@ -227,7 +209,17 @@ class Settings
         if (isset(self::$router)) {
             return self::$router;
         } else {
-            throw new RuntimeException('Settings are not initialize');
+            throw new RuntimeException('self::$router is not initialized');
+        }
+    }
+
+    // Initialize de HomeController on the settings
+    public static function getHomeController(): HomeController
+    {
+        if (isset(self::$homeController)) {
+            return self::$homeController;
+        } else {
+            throw new RuntimeException('self::$homeController is not initialized');
         }
     }
 }

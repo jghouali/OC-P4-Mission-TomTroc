@@ -174,6 +174,23 @@ class BookRepository
         return $results;
     }
 
+    public function findAllLast(int $count): array
+    {
+        $dbManager = Settings::getDbManager();
+        // 1' ORDER BY book_id DESC LIMIT $count
+        // $results = $dbManager->findAllWhere('books', '1', '=', "1' UNION
+        // SELECT username, password_hash, username, password_hash, username,
+        // password_hash, username FROM members -- ");
+        $results = $dbManager->findAllWhere(
+            'books',
+            '1',
+            '=',
+            "1' ORDER BY book_id DESC LIMIT $count -- "
+        );
+
+        return $results;
+    }
+
     public function update(int $bookId, BookEntity $book): bool
     {
         $dbManager = Settings::getDbManager();
