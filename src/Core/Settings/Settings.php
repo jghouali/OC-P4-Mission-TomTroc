@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Settings;
 
+use Green\TomTroc\Controller\BookController;
 use Green\TomTroc\Controller\HomeController;
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
@@ -31,6 +32,7 @@ class Settings
     private static AuthentificationService $authentificationService;
     private static Router $router;
     private static HomeController $homeController;
+    private static BookController $bookController;
     // Configuration keys constants
     public const APP_NAME = 'app.name';
     public const APP_DEV = 'app.dev';
@@ -82,6 +84,7 @@ class Settings
         self::$router = new Router();
         // Controllers
         self::$homeController = new HomeController(self::$bookManager);
+        self::$bookController = new BookController(self::$bookManager, self::$memberManager);
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -220,6 +223,16 @@ class Settings
             return self::$homeController;
         } else {
             throw new RuntimeException('self::$homeController is not initialized');
+        }
+    }
+
+    // Initialize de BookController on the settings
+    public static function getBookController(): BookController
+    {
+        if (isset(self::$bookController)) {
+            return self::$bookController;
+        } else {
+            throw new RuntimeException('self::$bookController is not initialized');
         }
     }
 }
