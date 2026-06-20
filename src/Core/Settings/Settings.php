@@ -6,6 +6,7 @@ namespace Green\TomTroc\Core\Settings;
 
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
+use Green\TomTroc\Core\Router\Router;
 use Green\TomTroc\Core\Service\AuthentificationService;
 use Green\TomTroc\Manager\BookManager;
 use Green\TomTroc\Manager\MemberManager;
@@ -27,6 +28,7 @@ class Settings
     private static MemberRepository $memberRepository;
     private static MessageRepository $messageRepository;
     private static AuthentificationService $authentificationService;
+    private static Router $router;
 
     // Configuration keys constants
     public const APP_NAME = 'app.name';
@@ -40,6 +42,7 @@ class Settings
     public const APP_BOOK_MANAGER = 'app.bookManager';
     public const APP_MESSAGE_MANAGER = 'app.messageManager';
     public const APP_SESSION_SERVICE = 'app.sessionService';
+    public const APP_ROUTER = 'app.router';
     public const DB_STORAGE = 'db.storage';
     public const DB_OPTIONS = 'db.options';
     public const DB_FETCHALL_MODE = 'db.fetchall_mode';
@@ -92,6 +95,10 @@ class Settings
         self::$messageManager = Settings::get(
             Settings::APP_MESSAGE_MANAGER,
             new MessageManager(self::$messageRepository, self::$authentificationService)
+        );
+        self::$router = Settings::get(
+            Settings::APP_ROUTER,
+            new Router()
         );
     }
 
@@ -209,6 +216,16 @@ class Settings
     {
         if (isset(self::$memberManager)) {
             return self::$memberManager;
+        } else {
+            throw new RuntimeException('Settings are not initialize');
+        }
+    }
+
+    // Initialize de Router on the settings
+    public static function getRouter(): Router
+    {
+        if (isset(self::$router)) {
+            return self::$router;
         } else {
             throw new RuntimeException('Settings are not initialize');
         }

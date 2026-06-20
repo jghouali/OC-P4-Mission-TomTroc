@@ -15,17 +15,20 @@ class Request
 
         $httpLocation = explode('?', $httpUri)[0];
 
-        $param = explode('?', $httpUri)[1];
+        $param = substr(str_replace($httpLocation, '', $httpUri), 1);
+
         $httpParameters = [];
-        foreach (
-            array_map(
-                function ($n) {
-                    return explode('=', $n);
-                },
-                explode('&', $param)
-            ) as $array
-        ) {
-            $httpParameters[$array[0]] = $array[1];
+        if (preg_match('/\w=/', $param)) {
+            foreach (
+                array_map(
+                    function ($n) {
+                        return explode('=', $n);
+                    },
+                    explode('&', $param)
+                ) as $array
+            ) {
+                $httpParameters[$array[0]] = $array[1];
+            }
         }
 
         $this->httpUri = $httpUri;
