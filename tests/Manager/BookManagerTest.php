@@ -134,11 +134,49 @@ class BookManagerTest extends TestCase
         $book2 = BookEntityTest::instanciateValidBook();
         $book2->setFromMember($member);
         $book2->setAvailability(BookStatusEnum::AVAILABLE);
-        $book2 = Settings::getBookRepository()->insert($book1);
+        $book1 = Settings::getBookRepository()->insert($book1);
         $book2 = Settings::getBookRepository()->insert($book2);
 
         // WHEN user listAvailableBook()
         $result = Settings::getBookManager()->listAvailableBook();
+
+        // EXPECT getMyLibrary return array with books
+        $this->assertTrue(is_array($result));
+        $this->assertSame(2, count($result));
+    }
+
+    #[TestDox('Not Logged in Members can list Last books')]
+    #[TestWith(['John Doe', 'johndoe@mail.com', 'johndoe', '/upload/avatars/johndoe.png'])]
+    public function testNotLoggedInMembersCanListLastBooks(
+        string $username,
+        string $email,
+        string $password,
+        string $avatarPath
+    ) {
+        // GIVEN
+        // Have 1 member registered :
+        $member = Settings::getAuthentificationService()->register($username, $email, $password, $avatarPath);
+
+        // $member add a book to his library
+        $book1 = BookEntityTest::instanciateValidBook();
+        $book1->setAvailability(BookStatusEnum::AVAILABLE);
+        $book1->setFromMember($member);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setFromMember($member);
+        $book2->setAvailability(BookStatusEnum::AVAILABLE);
+        $book3 = BookEntityTest::instanciateValidBook();
+        $book3->setAvailability(BookStatusEnum::AVAILABLE);
+        $book3->setFromMember($member);
+        $book4 = BookEntityTest::instanciateValidBook();
+        $book4->setFromMember($member);
+        $book4->setAvailability(BookStatusEnum::AVAILABLE);
+        $book1 = Settings::getBookRepository()->insert($book1);
+        $book2 = Settings::getBookRepository()->insert($book2);
+        $book3 = Settings::getBookRepository()->insert($book3);
+        $book4 = Settings::getBookRepository()->insert($book4);
+
+        // WHEN user listLastBook(2)
+        $result = Settings::getBookManager()->listLastBook(2);
 
         // EXPECT getMyLibrary return array with books
         $this->assertTrue(is_array($result));

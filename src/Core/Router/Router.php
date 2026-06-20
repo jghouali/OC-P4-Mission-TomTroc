@@ -37,12 +37,7 @@ class Router
 
     public function register(string $route, callable $function)
     {
-        $routes = [
-            $route => $function,
-        ];
-
         $this->routes[$route] = $function;
-        //array_merge($this->routes, $routes);
     }
 
     public function pageNotFoundContent(Request $request): string

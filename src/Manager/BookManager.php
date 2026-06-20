@@ -64,6 +64,12 @@ class BookManager
         return $result;
     }
 
+    public function listLastBook(int $count): array|bool
+    {
+        $result = $this->bookRepository->findAllLast($count);
+        return $result;
+    }
+
     public function getBookDetail(BookEntity|int $book): BookEntity|bool
     {
         if (is_int($book)) {
