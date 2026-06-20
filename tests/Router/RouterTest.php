@@ -6,6 +6,7 @@ namespace Tests\Router;
 
 use Green\TomTroc\Core\Http\Request;
 use Green\TomTroc\Core\Settings\Settings;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 
 class RouterTest extends TestCase
@@ -22,37 +23,33 @@ class RouterTest extends TestCase
         Settings::initialize();
     }
 
-    public function testResolveReturnAResponseObject(): void
+    #[TestDox('register() can set a callable as route and resolve() on that route return the result of the callable')]
+    public function testResolveWithExistingRouteReturnAHttp200ResponseObject(): void
     {
+        $testCallable = function ($param) {
+            ob_start();
+            var_dump($param);
+            $data = ob_get_clean();
+            return "LoginForm with :\n $data";
+        };
+        Settings::getRouter()->register('/login', $testCallable);
         $requestUri = '/login?rememberme=1';
         $request = new Request($requestUri);
-
-        $this->assertSame('Green\TomTroc\Core\Http\Response', Settings::getRouter()->resolve($request)::class);
-    }
-
-    public function testRegisterCanSetACallableAsRoute(): void
-    {
-        $testCallable = function ($a) {
-            ob_start();
-            var_dump($a);
-            $data = ob_get_clean();
-            return "This Content $data";
-        };
-        Settings::getRouter()->register('/', $testCallable);
-
-        $request = new Request('/?thisparameter=thisvalue');
         $response = Settings::getRouter()->resolve($request);
 
-        $this->assertMatchesRegularExpression('/This Content/', $response->getHttpContent());
-        $this->assertMatchesRegularExpression('/thisparameter/', $response->getHttpContent());
-        $this->assertMatchesRegularExpression('/thisvalue/', $response->getHttpContent());
+        $this->assertSame('Green\TomTroc\Core\Http\Response', $response::class);
+        $this->assertSame(200, $response->getHttpCode());
+        $this->assertMatchesRegularExpression('/LoginForm with :/', $response->getHttpContent());
+        $this->assertMatchesRegularExpression('/rememberme/', $response->getHttpContent());
     }
 
+    #[TestDox('resolve() on an inexisting route return pageNotFoundContent()')]
     public function testPageNotFoundContent(): void
     {
         $request = new Request('/thisroute?parameter=thisvalue');
         $response = Settings::getRouter()->resolve($request);
 
         $this->assertMatchesRegularExpression('/\/thisroute not found/', $response->getHttpContent());
+        $this->assertSame(404, $response->getHttpCode());
     }
 }

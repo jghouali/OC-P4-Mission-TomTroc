@@ -188,6 +188,52 @@ class BookRepositoryTest extends TestCase
         $this->assertSame(3, count(Settings::getBookRepository()->findAllWhere('author', 'LIKE', '%Jean%')));
     }
 
+    #[TestDox('findAllLast(2) books')]
+    public function testFindAllLast(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+        // And have this member
+        $member = MemberEntityTest::instanciateValidMember();
+        // In db
+        Settings::getMemberRepository()->insert($member);
+        // And 4 books
+        $book1 = BookEntityTest::instanciateValidBook();
+        $book1->setTitle('Titre1');
+        $book1->setAuthor('Jean de la Fontaine');
+        $book1->setFromMember($member);
+        $book2 = BookEntityTest::instanciateValidBook();
+        $book2->setTitle('Titre2');
+        $book2->setAuthor('Jean Jacques Rousseau');
+        $book2->setFromMember($member);
+        $book3 = BookEntityTest::instanciateValidBook();
+        $book3->setTitle('Titre3');
+        $book3->setAuthor('Jean Guy');
+        $book3->setFromMember($member);
+        $book4 = BookEntityTest::instanciateValidBook();
+        $book4->setTitle('Titre4');
+        $book4->setAuthor('Marcel Pagnol');
+        $book4->setFromMember($member);
+        // In db
+        Settings::getBookRepository()->insert($book1);
+        Settings::getBookRepository()->insert($book2);
+        Settings::getBookRepository()->insert($book3);
+        Settings::getBookRepository()->insert($book4);
+
+        // WHEN
+        // Use findAll()
+        // EXPECT
+        // retieve 4 books
+        $this->assertSame(4, count(Settings::getBookRepository()->findAll()));
+
+        // WHEN
+        // Use findAllWhere() with : author LIKE '%Jean%'
+        // EXPECT
+        // retieve 3 books
+        $this->assertSame(2, count(Settings::getBookRepository()->findAllLast(2)));
+    }
+
     #[TestDox('FindAllWhere() return [] with invalid informations')]
     public function testFindAllWhereInvalidData(): void
     {
