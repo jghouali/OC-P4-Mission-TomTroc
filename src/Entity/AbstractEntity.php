@@ -102,7 +102,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^\/upload\/' . $directory . '\/[a-zA-Z0-9]{1,50}\.png$/']]
+                    ['options' => ['regexp' => '/^\/upload\/' . $directory . '\/[a-zA-Z0-9\-]{1,50}\.png$/']]
                 );
                 $message = $propertyName . ' must be stored in /upload/' . $directory .
                     '/, contain only a-z, A-Z or 0-9, and have .png extension';

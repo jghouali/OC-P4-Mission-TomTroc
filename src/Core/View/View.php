@@ -59,6 +59,7 @@ class View
 
     public function render(array $data, string $template)
     {
+        extract($data);
         if (file_exists($template)) {
             ob_start();
             include($template);

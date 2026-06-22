@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Repository;
 
+use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
@@ -13,157 +14,130 @@ use RuntimeException;
 
 class MemberRepository
 {
+    private StorageInterface $dbManager;
+
+    public function __construct(StorageInterface $dbManager)
+    {
+        $this->dbManager = $dbManager;
+    }
+
+    public function oneToMember(array $array): MemberEntity
+    {
+        $member = new MemberEntity(
+            $array['username'],
+            $array['email'],
+            $array['password_hash'],
+            $array['avatar_path'],
+            Locales::getLocalDateTime($array['created_at']),
+            Locales::getLocalDateTime($array['updated_at']),
+            $array['notification_count'],
+            MemberStatusEnum::tryFrom($array['status'])
+        );
+        $member->setId($array['member_id']);
+
+        return $member;
+    }
+
     // serialize-like this object to server StorageInterface
     public function arrayToMember(array $array): array
     {
-        $result = [];
+        $results = [];
         foreach ($array as $row) {
-            $result[] = new MemberEntity(
-                $row['username'],
-                $row['email'],
-                $row['password_hash'],
-                $row['avatar_path'],
-                Locales::getLocalDateTime($row['created_at']),
-                Locales::getLocalDateTime($row['updated_at']),
-                $row['notification_count'],
-                MemberStatusEnum::tryFrom($row['status'])
-            );
+            $message = $this->oneToMember($row);
+
+            $results[] = $message;
         }
 
-        return $result;
+        return $results;
     }
 
     public function deleteAll(): bool
     {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->deleteAll('members');
+        return $this->dbManager->deleteAll('members');
     }
 
-    public function insert(MemberEntity $member): int|false
+    public function insert(MemberEntity $member): MemberEntity|false
     {
-        $dbManager = Settings::getDbManager();
-
-        $lastId = $dbManager->insert('members', $member->toArray());
+        $lastId = $this->dbManager->insert('members', $member->toArray());
         if (is_int($lastId)) {
             $member->setId($lastId);
         }
-        return $lastId;
+        return $member;
     }
 
     public function delete(MemberEntity $member): bool
     {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->delete('members', $member->toArray());
+        return $this->dbManager->delete('members', $member->toArray());
     }
 
     public function findAll(): array
     {
-        $dbManager = Settings::getDbManager();
-        $members = $dbManager->findAll('members');
-
-        return $members;
+        return $this->arrayToMember($this->dbManager->findAll('members'));
     }
 
     public function findAllWhere(string $column, string $operator, string $value): array
     {
-        $dbManager = Settings::getDbManager();
-
-        $members = [];
-
         $columnWhiteList = ['username', 'email'];
         if (in_array($column, $columnWhiteList)) {
             $operatorWhiteList = ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'];
             if (in_array($operator, $operatorWhiteList)) {
                 try {
-                    $members = $dbManager->findAllWhere('members', $column, $operator, $value);
+                    $members = $this->dbManager->findAllWhere('members', $column, $operator, $value);
                 } catch (PDOException $e) {
                     if (Settings::get(Settings::APP_DEV)) {
                         echo $e->getMessage();
                     }
                     return [];
                 }
+            } else {
+                throw new RuntimeException('Invalid operator');
             }
+        } else {
+            throw new RuntimeException('Invalid column');
         }
 
-        return $members;
+        return $this->arrayToMember($members);
     }
 
     public function findById(int $id): MemberEntity
     {
-        $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
+        $result = $this->dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
 
-        $member = new MemberEntity(
-            $result['username'],
-            $result['email'],
-            $result['password_hash'],
-            $result['avatar_path'],
-            Locales::getLocalDateTime($result['created_at']),
-            Locales::getLocalDateTime($result['updated_at']),
-            $result['notification_count'],
-            MemberStatusEnum::tryFrom($result['status'])
-        );
-        $member->setId($result['member_id']);
+        $member = $this->oneToMember($result);
 
         return $member;
     }
 
     public function findByUsername(string $username): MemberEntity
     {
-        $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('members', 'username', $username);
+        $result = $this->dbManager->findOne('members', 'username', $username);
 
         if (count($result) === 0) {
             throw new RuntimeException("User $username doe not exist");
         }
 
-        $member = new MemberEntity(
-            $result['username'],
-            $result['email'],
-            $result['password_hash'],
-            $result['avatar_path'],
-            Locales::getLocalDateTime($result['created_at']),
-            Locales::getLocalDateTime($result['updated_at']),
-            $result['notification_count'],
-            MemberStatusEnum::tryFrom($result['status'])
-        );
-        $member->setId($result['member_id']);
+        $member = $this->oneToMember($result);
 
         return $member;
     }
 
     public function findByEmail(string $email): MemberEntity
     {
-        $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('members', 'email', $email);
+        $result = $this->dbManager->findOne('members', 'email', $email);
 
         if (count($result) === 0) {
             throw new RuntimeException("User $email doe not exist");
         }
 
-        $member = new MemberEntity(
-            $result['username'],
-            $result['email'],
-            $result['password_hash'],
-            $result['avatar_path'],
-            Locales::getLocalDateTime($result['created_at']),
-            Locales::getLocalDateTime($result['updated_at']),
-            $result['notification_count'],
-            MemberStatusEnum::tryFrom($result['status'])
-        );
-        $member->setId($result['member_id']);
+        $member = $this->oneToMember($result);
 
         return $member;
     }
 
     public function update(int $memberId, MemberEntity $member): MemberEntity|false
     {
-        $dbManager = Settings::getDbManager();
-
         $member->setUpdatedAt(Locales::getLocalDateTime());
-        $result = $dbManager->update('members', $memberId, $member->toArray());
+        $result = $this->dbManager->update('members', $memberId, $member->toArray());
 
         if ($result) {
             $memberUpdated = $this->findById($memberId);

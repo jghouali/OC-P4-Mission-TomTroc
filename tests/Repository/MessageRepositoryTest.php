@@ -149,7 +149,7 @@ class MessageRepositoryTest extends TestCase
         $this->assertSame(1, count(Settings::getMessageRepository()->findAllWhere('content', 'LIKE', '%Hello%')));
     }
 
-    #[TestDox('FindAllWhere() return [] with invalid informations')]
+    #[TestDox('FindAllWhere() return RunTime Exception with an error message on invalid data')]
     public function testFindAllWhereInvalidData(): void
     {
         // GIVEN
@@ -171,11 +171,13 @@ class MessageRepositoryTest extends TestCase
         //in the db
         Settings::getMessageRepository()->insert($message);
 
-        // WHEN
-        // findAllWhere()
         // EXPECT
-        // return 2
-        $this->assertSame(0, count(Settings::getMessageRepository()->findAllWhere('contenu', 'LIKE', '%Hello%')));
+        // a RunTime Exception with an error message
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageIs('Invalid column');
+        // WHEN
+        // findAllWhere() with invalid data
+        Settings::getMessageRepository()->findAllWhere('contenu', 'LIKE', '%Hello%');
     }
 
     #[TestDox('FindById())')]

@@ -51,7 +51,7 @@ class MemberRepositoryTest extends TestCase
 
         // EXPECT
         // return true
-        $this->assertTrue(is_int($result));
+        $this->assertSame('Green\\TomTroc\\Entity\\MemberEntity', $result::class);
         // And there is now 1 row in members table
         $this->assertSame(1, count(Settings::getMemberRepository()->findAll()));
 
@@ -139,17 +139,21 @@ class MemberRepositoryTest extends TestCase
 
         $this->assertSame(1, count(Settings::getMemberRepository()->findAll()));
 
+        // EXPECT
+        // a RuntimException and an error message
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageIs('Invalid column');
         // WHEN
         // findAllWhere() with column that do not exist : user LIKE '%jean%'
-        // EXPECT
-        // retieve 0 member  // this comportement may change
         $this->assertSame(0, count(Settings::getMemberRepository()->findAllWhere('user', 'LIKE', '%jean%')));
 
+        // EXPECT
+        // a RuntimException and an error message
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageIs('Invalid column');
         // WHEN
         // findAllWhere() with operator
         // not in ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'] : username + '%jean%'
-        // EXPECT
-        // retieve 0 member  // this comportement change change
         $this->assertSame(0, count(Settings::getMemberRepository()->findAllWhere('username', '+', '%jean%')));
     }
 
