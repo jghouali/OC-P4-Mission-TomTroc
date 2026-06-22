@@ -7,6 +7,7 @@ namespace Green\TomTroc\Manager;
 use Green\TomTroc\Core\Service\AuthentificationService;
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
+use Green\TomTroc\Entity\ProfileEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
 use Green\TomTroc\Repository\MemberRepository;
 use RuntimeException;
@@ -63,19 +64,32 @@ class MemberManager
         );
     }
 
-    public function getProfileData(string $username): array
+    public function getProfileData(int $id): ProfileEntity
     {
-        $member = $this->memberRepository->findByUsername($username);
-        $profile = [
-            'id' => $member->getId(),
-            'username' => $member->getUserName(),
-            'email' => $member->getEmail(),
-            'avatarPath' => $member->getAvatarPath(),
-            'createdAt' => $member->getCreatedAt(),
-            'updatedAt' => $member->getUpdatedAt(),
-            'notificationCount' => $member->getNotificationCount(),
-            'status' => $member->getStatus(),
-        ];
+        $member = $this->memberRepository->findById($id);
+        $profile = new ProfileEntity($member);
+        return $profile;
+    }
+
+    public function getMyProfileData(): array
+    {
+        $loggedMember = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedMember === null) {
+            throw new RuntimeException('You are not logged in');
+        } elseif ($loggedMember::class === 'Green\TomTroc\Entity\MemberEntity') {
+            $profile = [
+                'id' => $loggedMember->getId(),
+                'username' => $loggedMember->getUserName(),
+                'email' => $loggedMember->getEmail(),
+                'avatarPath' => $loggedMember->getAvatarPath(),
+                'createdAt' => $loggedMember->getCreatedAt(),
+                'updatedAt' => $loggedMember->getUpdatedAt(),
+                'notificationCount' => $loggedMember->getNotificationCount(),
+                'status' => $loggedMember->getStatus(),
+            ];
+        } else {
+            throw new RuntimeException('Unknown Error');
+        }
         return $profile;
     }
 }

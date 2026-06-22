@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Repository;
 
+use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\BookEntity;
 use Green\TomTroc\Entity\MemberEntity;
@@ -13,29 +14,49 @@ use RuntimeException;
 
 class BookRepository
 {
+    private StorageInterface $dbManager;
+    private MemberRepository $memberRepository;
+
+    public function __construct(StorageInterface $dbManager, MemberRepository $memberRepository)
+    {
+        $this->dbManager = $dbManager;
+        $this->memberRepository = $memberRepository;
+    }
     // serialize-like this object to server StorageInterface
+
+    public function oneToBook(array $array): BookEntity
+    {
+        $book = new BookEntity(
+            $array['title'],
+            $array['author'],
+            $array['image_path'],
+            $array['description'],
+            BookStatusEnum::tryFrom($array['availability']),
+            $array['fk_member_id']
+        );
+        $book->setId($array['book_id']);
+        $book->setFromMember(
+            $this->memberRepository->findById($array['fk_member_id'])
+        );
+
+        return $book;
+    }
+
     public function arrayToBook(array $array): array
     {
-        $result = [];
+        $results = [];
         foreach ($array as $row) {
-            $row[] = new BookEntity(
-                $row['title'],
-                $row['author'],
-                $row['image_path'],
-                $row['description'],
-                BookStatusEnum::tryFrom($row['availability']),
-                $row['fk_member_id']
-            );
+            $message = $this->oneToBook($row);
+
+            $results[] = $message;
         }
 
-        return $result;
+        return $results;
     }
 
     public function deleteAll(): bool
     {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->deleteAll('books');
+        return $this->dbManager->deleteAll('books');
     }
 
     public function insert(BookEntity $book): BookEntity|false
@@ -44,9 +65,7 @@ class BookRepository
             throw new RuntimeException('Member Id is null');
         }
 
-        $dbManager = Settings::getDbManager();
-
-        $lastId = $dbManager->insert('books', $book->toArray());
+        $lastId = $this->dbManager->insert('books', $book->toArray());
         if (is_int($lastId)) {
             $book->setId($lastId);
 
@@ -58,100 +77,53 @@ class BookRepository
 
     public function delete(BookEntity $book): bool
     {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->delete('books', $book->toArray());
+        return $this->dbManager->delete('books', $book->toArray());
     }
 
     public function findAll(): array
     {
-        $dbManager = Settings::getDbManager();
-        $books = $dbManager->findAll('books');
-
-        return $books;
+        return $this->arrayToBook(
+            $this->dbManager->findAll('books')
+        );
     }
 
     public function findAllWhere(string $column, string $operator, string $value): array
     {
-        $booksArray = [];
-
         $columnWhiteList = ['title', 'author', 'description', 'availability', 'fk_member_id'];
         if (in_array($column, $columnWhiteList)) {
             $operatorWhiteList = ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'];
 
             if (in_array($operator, $operatorWhiteList)) {
                 try {
-                    $books = Settings::getDbManager()->findAllWhere('books', $column, $operator, $value);
-
-                    foreach ($books as $book) {
-                        $bookObject = new BookEntity(
-                            $book['title'],
-                            $book['author'],
-                            $book['image_path'],
-                            $book['description'],
-                            BookStatusEnum::tryFrom($book['availability']),
-                            $book['fk_member_id']
-                        );
-                        $bookObject->setId($book['book_id']);
-
-                        $booksArray[] = $bookObject;
-                    }
+                    $books = $this->dbManager->findAllWhere('books', $column, $operator, $value);
                 } catch (PDOException $e) {
                     if (Settings::get(Settings::APP_DEV)) {
                         echo $e->getMessage();
                     }
                     return [];
                 }
+            } else {
+                throw new RuntimeException('Invalid operator');
             }
+        } else {
+            throw new RuntimeException('Invalid column');
         }
 
-        return $booksArray;
+        return $this->arrayToBook($books);
     }
 
     public function findById(int $id): BookEntity|false
     {
-        $dbManager = Settings::getDbManager();
-        $result = $dbManager->findOne('books', BookEntity::getStorageIdName(), $id);
-
-        if ($result === []) {
-            $book = false;
-        } else {
-            $book = new BookEntity(
-                $result['title'],
-                $result['author'],
-                $result['image_path'],
-                $result['description'],
-                BookStatusEnum::tryFrom($result['availability']),
-                Settings::getMemberRepository()->findById($result['fk_member_id'])
-            );
-            $book->setId($result['book_id']);
-        }
-
-        return $book;
+        return $this->oneToBook(
+            $this->dbManager->findOne('books', BookEntity::getStorageIdName(), $id)
+        );
     }
 
     public function findByTitle(string $title): BookEntity|null
     {
-        try {
-            $bookArray = Settings::getDbManager()->findOne('books', 'title', $title);
+        $result = $this->dbManager->findOne('books', 'title', $title);
 
-            $book = new BookEntity(
-                $bookArray['title'],
-                $bookArray['author'],
-                $bookArray['image_path'],
-                $bookArray['description'],
-                BookStatusEnum::tryFrom($bookArray['availability']),
-                Settings::getMemberRepository()->findById($bookArray['fk_member_id']),
-            );
-            $book->setId($bookArray['book_id']);
-        } catch (PDOException $e) {
-            if (Settings::get(Settings::APP_DEV)) {
-                echo $e->getMessage();
-            }
-            return null;
-        }
-
-        return $book;
+        return $this->oneToBook($result);
     }
 
     public function findAllByMember(int|MemberEntity $member): array
@@ -163,38 +135,31 @@ class BookRepository
         } else {
             throw new RuntimeException("$member is neither int or MemberEntity");
         }
-        return Settings::getDbManager()->findAllWhere('books', 'fk_member_id', '=', (string) $id);
+
+        return $this->findAllWhere('fk_member_id', '=', (string) $id);
     }
 
     public function findAllByAvailability(BookStatusEnum $availability): array
     {
-        $dbManager = Settings::getDbManager();
-        $results = $dbManager->findAllWhere('books', 'availability', '=', $availability->value);
-
-        return $results;
+        return $this->findAllWhere('availability', '=', $availability->value);
     }
 
     public function findAllLast(int $count): array
     {
-        $dbManager = Settings::getDbManager();
         // 1' ORDER BY book_id DESC LIMIT $count
         // $results = $dbManager->findAllWhere('books', '1', '=', "1' UNION
         // SELECT username, password_hash, username, password_hash, username,
         // password_hash, username FROM members -- ");
-        $results = $dbManager->findAllWhere(
+        return $this->dbManager->findAllWhere(
             'books',
             '1',
             '=',
             "1' ORDER BY book_id DESC LIMIT $count -- "
         );
-
-        return $results;
     }
 
     public function update(int $bookId, BookEntity $book): bool
     {
-        $dbManager = Settings::getDbManager();
-
-        return $dbManager->update('books', $bookId, $book->toArray());
+        return $this->dbManager->update('books', $bookId, $book->toArray());
     }
 }

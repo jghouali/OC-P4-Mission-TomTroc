@@ -6,6 +6,7 @@ namespace Green\TomTroc\Core\Settings;
 
 use Green\TomTroc\Controller\BookController;
 use Green\TomTroc\Controller\HomeController;
+use Green\TomTroc\Controller\MemberController;
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Router\Router;
@@ -33,6 +34,7 @@ class Settings
     private static Router $router;
     private static HomeController $homeController;
     private static BookController $bookController;
+    private static MemberController $memberController;
     // Configuration keys constants
     public const APP_NAME = 'app.name';
     public const APP_DEV = 'app.dev';
@@ -70,21 +72,48 @@ class Settings
             self::$dbManager->open();
         }
         // Repositories
-        self::$memberRepository = new MemberRepository();
-        self::$bookRepository = new BookRepository();
-        self::$messageRepository = new MessageRepository();
+        self::$memberRepository = new MemberRepository(
+            self::$dbManager
+        );
+        self::$bookRepository = new BookRepository(
+            self::$dbManager,
+            self::$memberRepository
+        );
+        self::$messageRepository = new MessageRepository(
+            self::$dbManager,
+            self::$memberRepository
+        );
 
         // Services
         self::$authentificationService = new AuthentificationService();
         // Managers
-        self::$memberManager = new MemberManager(self::$memberRepository, self::$authentificationService);
-        self::$bookManager = new BookManager(self::$bookRepository, self::$authentificationService);
-        self::$messageManager = new MessageManager(self::$messageRepository, self::$authentificationService);
+        self::$memberManager = new MemberManager(
+            self::$memberRepository,
+            self::$authentificationService
+        );
+        self::$bookManager = new BookManager(
+            self::$bookRepository,
+            self::$authentificationService
+        );
+        self::$messageManager = new MessageManager(
+            self::$messageRepository,
+            self::$authentificationService
+        );
         // Router
         self::$router = new Router();
         // Controllers
-        self::$homeController = new HomeController(self::$bookManager);
-        self::$bookController = new BookController(self::$bookManager, self::$memberManager);
+        self::$homeController = new HomeController(
+            self::$bookManager
+        );
+        self::$bookController = new BookController(
+            self::$bookManager,
+            self::$memberManager
+        );
+        self::$memberController = new MemberController(
+            self::$bookManager,
+            self::$memberManager,
+            self::$authentificationService
+        );
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -233,6 +262,16 @@ class Settings
             return self::$bookController;
         } else {
             throw new RuntimeException('self::$bookController is not initialized');
+        }
+    }
+
+    // Initialize de MemberController on the settings
+    public static function getMemberController(): MemberController
+    {
+        if (isset(self::$memberController)) {
+            return self::$memberController;
+        } else {
+            throw new RuntimeException('self::$memberController is not initialized');
         }
     }
 }

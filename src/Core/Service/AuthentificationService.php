@@ -53,12 +53,7 @@ class AuthentificationService
             0,
             MemberStatusEnum::NOTVALIDATED
         );
-        $result = $this->memberRepository->insert($member);
-        if (is_int($result)) {
-            return $member;
-        } else {
-            return false;
-        }
+        return $this->memberRepository->insert($member);
     }
 
     public function login(string $email, string $password): bool

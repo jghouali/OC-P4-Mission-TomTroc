@@ -60,21 +60,20 @@ class BookRepositoryTest extends TestCase
 
         // WHEN
         // insert() it in db
-        Settings::getMemberRepository()->insert($member);
-        $result = Settings::getBookRepository()->insert($book);
+        $member = Settings::getMemberRepository()->insert($member);
+        $book = Settings::getBookRepository()->insert($book);
 
         // EXPECT
         // return true
-        $this->assertSame('Green\TomTroc\Entity\BookEntity', $result::class);
+        $this->assertSame('Green\TomTroc\Entity\BookEntity', $book::class);
         // And there is now one row in books table
-        $bookArray = Settings::getBookRepository()->findAll();
-        $this->assertSame(1, count($bookArray));
-        $this->assertSame($book->getTitle(), $bookArray[0]['title']);
-        $this->assertSame($book->getAuthor(), $bookArray[0]['author']);
-        $this->assertSame($book->getImagePath(), $bookArray[0]['image_path']);
-        $this->assertSame($book->getDescription(), $bookArray[0]['description']);
-        $this->assertSame($book->getAvailability()->value, $bookArray[0]['availability']);
-        $this->assertSame($book->getFromMember()->getId(), $bookArray[0]['fk_member_id']);
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 1);
+        $this->assertSame('Titre duLivre', $book->getTitle());
+        $this->assertSame('JeandelaFontaine', $book->getAuthor());
+        $this->assertSame('/upload/books/titreDuLivre.png', $book->getImagePath());
+        $this->assertSame('cest une histoire affabulante', $book->getDescription());
+        $this->assertSame(BookStatusEnum::AVAILABLE->value, $book->getAvailability()->value);
+        $this->assertSame($member->getId(), $book->getFromMember()->getId());
 
         // WHEN
         // now, delete() it
@@ -234,35 +233,36 @@ class BookRepositoryTest extends TestCase
         $this->assertSame(2, count(Settings::getBookRepository()->findAllLast(2)));
     }
 
-    #[TestDox('FindAllWhere() return [] with invalid informations')]
-    public function testFindAllWhereInvalidData(): void
+    #[TestDox('FindAllWhere() return [] with invalid column')]
+    public function testFindAllWhereInvalidColumn(): void
     {
         // GIVEN
         // books table is empty
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
-        // And have this member in db
-        $member = MemberEntityTest::instanciateValidMember();
-        Settings::getMemberRepository()->insert($member);
-        // and this books
-        $book = BookEntityTest::instanciateValidBook();
-        $book->setTitle('jean');
-        $book->setAuthor('jeanjean');
-        $book->setFromMember($member);
-        // in db
-        Settings::getBookRepository()->insert($book);
-        $this->assertSame(1, count(Settings::getBookRepository()->findAll()));
 
+        // EXPECT
+        // a Runtime Exception with an appropriate error
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageIs('Invalid column');
         // WHEN
         // findAllWhere() with column that does not exist : auth LIKE '%Jean%'
-        // EXPECT
-        // retieve 0 book  // this comportement may change
         $this->assertSame(0, count(Settings::getBookRepository()->findAllWhere('auth', 'LIKE', '%Jean%')));
+    }
 
+    #[TestDox('FindAllWhere() return [] with invalid operator')]
+    public function testFindAllWhereInvalidOperator(): void
+    {
+        // GIVEN
+        // books table is empty
+        $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
+
+        // EXPECT
+        // a Runtime Exception with an appropriate error
+        $this->expectException('RuntimeException');
+        $this->expectExceptionMessageIs('Invalid operator');
         // WHEN
         // findAllWhere() with operator
         // not in ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'] : author + '%Jean%'
-        // EXPECT
-        // retieve 0 book  // this comportement may change
         $this->assertSame(0, count(Settings::getBookRepository()->findAllWhere('author', '+', '%Jean%')));
     }
 
@@ -291,7 +291,7 @@ class BookRepositoryTest extends TestCase
         $this->assertSame($book->getImagePath(), $book2->getImagePath());
         $this->assertSame($book->getDescription(), $book2->getDescription());
         $this->assertSame($book->getAvailability(), $book2->getAvailability());
-        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
+        $this->assertSame($book->getFromMember()->getId(), $book2->getFromMember()->getId());
     }
 
     #[TestDox('FindByTitle()')]
@@ -319,7 +319,7 @@ class BookRepositoryTest extends TestCase
         $this->assertSame($book->getImagePath(), $book2->getImagePath());
         $this->assertSame($book->getDescription(), $book2->getDescription());
         $this->assertSame($book->getAvailability(), $book2->getAvailability());
-        $this->assertSame($book->getFromMember()->getUsername(), $book2->getFromMember()->getUsername());
+        $this->assertSame($book->getFromMember()->getId(), $book2->getFromMember()->getId());
     }
 
     #[TestDox('FindAllByMember()')]
@@ -330,7 +330,7 @@ class BookRepositoryTest extends TestCase
         $this->assertTrue(count(Settings::getBookRepository()->findAll()) === 0);
         // and we have this member in db
         $member = MemberEntityTest::instanciateValidMember();
-        Settings::getMemberRepository()->insert($member);
+        $member = Settings::getMemberRepository()->insert($member);
         // and these 2 books
         $book = BookEntityTest::instanciateValidBook();
         $book->setFromMember($member);
