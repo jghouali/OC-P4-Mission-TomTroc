@@ -1,11 +1,11 @@
 <?php
 
 /**
- * @var array $data send by View
+ * @var array $avalaibleBooks Available books send by View
  */
 ?>
 <main>
-    <?php foreach ($data['avalaibleBooks'] as $book): ?>
-        <?= $book['title'] ?>
+    <?php foreach ($avalaibleBooks as $book): ?>
+        <?= $book->getTitle() ?>
     <?php endforeach ?>
 </main>

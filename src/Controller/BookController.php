@@ -36,7 +36,7 @@ class BookController
 
         $availableBooksView = new View($book->getTitle());
         $data = [
-            'book' => $book->toArray(),
+            'book' => $book,
         ];
 
         return $availableBooksView->render($data, TEMPLATE_DIR . '/book-detail.php');
@@ -48,7 +48,7 @@ class BookController
 
         $availableBooksView = new View('Edit ' . $book->getTitle());
         $data = [
-            'book' => $book->toArray(),
+            'book' => $book,
         ];
 
         return $availableBooksView->render($data, TEMPLATE_DIR . '/book-edit.php');

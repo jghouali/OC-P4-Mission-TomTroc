@@ -70,71 +70,40 @@ class MemberManagerTest extends TestCase
         $this->assertFalse(isset($_SESSION['avatarPath']));
 
         // EXPECT user can see members profiles
-        $profileData = Settings::getMemberManager()->getProfileData('John Doe');
-        $this->assertSame(
-            $member->getId(),
-            $profileData['id']
-        );
+        $profileData = Settings::getMemberManager()->getProfileData($member->getId());
         $this->assertSame(
             $member->getUserName(),
-            $profileData['username']
-        );
-        $this->assertSame(
-            $member->getEmail(),
-            $profileData['email']
+            $profileData->getUsername()
         );
         $this->assertSame(
             $member->getAvatarPath(),
-            $profileData['avatarPath']
+            $profileData->getAvatarPath()
         );
         $this->assertSame(
-            $member->getCreatedAt(),
-            $profileData['createdAt']
+            'aujourd\'hui',
+            $profileData->getMemberSince()
         );
         $this->assertSame(
-            $member->getUpdatedAt(),
-            $profileData['updatedAt']
-        );
-        $this->assertSame(
-            $member->getNotificationCount(),
-            $profileData['notificationCount']
-        );
-        $this->assertSame(
-            $member->getStatus(),
-            $profileData['status']
+            '0 livre',
+            $profileData->getBookCount()
         );
 
-        $this->assertSame(
-            $member2->getId(),
-            Settings::getMemberManager()->getProfileData('other profile')['id']
-        );
+        $profile2Data = Settings::getMemberManager()->getProfileData($member2->getId());
         $this->assertSame(
             $member2->getUserName(),
-            Settings::getMemberManager()->getProfileData('other profile')['username']
-        );
-        $this->assertSame(
-            $member2->getEmail(),
-            Settings::getMemberManager()->getProfileData('other profile')['email']
+            $profile2Data->getUsername()
         );
         $this->assertSame(
             $member2->getAvatarPath(),
-            Settings::getMemberManager()->getProfileData('other profile')['avatarPath']
+            $profile2Data->getAvatarPath()
         );
         $this->assertSame(
-            $member2->getCreatedAt(),
-            Settings::getMemberManager()->getProfileData('other profile')['createdAt']
+            'aujourd\'hui',
+            $profile2Data->getMemberSince()
         );
         $this->assertSame(
-            $member2->getUpdatedAt(),
-            Settings::getMemberManager()->getProfileData('other profile')['updatedAt']
-        );
-        $this->assertSame(
-            $member2->getNotificationCount(),
-            Settings::getMemberManager()->getProfileData('other profile')['notificationCount']
-        );
-        $this->assertSame(
-            $member2->getStatus(),
-            Settings::getMemberManager()->getProfileData('other profile')['status']
+            '0 livre',
+            $profile2Data->getBookCount()
         );
     }
 
