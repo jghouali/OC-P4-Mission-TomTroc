@@ -51,7 +51,7 @@ class MemberManager
     {
         return (
             $this->memberRepository
-                ->findByEmail($email)::class === 'Green\TomTroc\Entity\MemberEntity'
+                ->findOneByEmail($email)::class === 'Green\TomTroc\Entity\MemberEntity'
         );
     }
 
@@ -59,14 +59,14 @@ class MemberManager
     {
         return (
             $this->memberRepository
-            ->findByEmail($email)
+            ->findOneByEmail($email)
             ->getStatus() === MemberStatusEnum::VALIDATED
         );
     }
 
     public function getProfileData(int $id): ProfileEntity
     {
-        $member = $this->memberRepository->findById($id);
+        $member = $this->memberRepository->findOneById($id);
         $profile = new ProfileEntity($member);
         return $profile;
     }

@@ -14,11 +14,16 @@ use RuntimeException;
 
 class MessageManager
 {
+    private MemberManager $memberManager;
     private MessageRepository $messageRepository;
     private AuthentificationService $authentificationService;
 
-    public function __construct(MessageRepository $messageRepository, AuthentificationService $authentificationService)
-    {
+    public function __construct(
+        MessageRepository $messageRepository,
+        AuthentificationService $authentificationService,
+        MemberManager $memberManager
+    ) {
+        $this->memberManager = $memberManager;
         $this->messageRepository = $messageRepository;
         $this->authentificationService = $authentificationService;
     }
@@ -50,8 +55,15 @@ class MessageManager
         if ($member === null) {
             throw new RuntimeException('You are not logged in');
         } elseif ($member::class === 'Green\TomTroc\Entity\MemberEntity') {
-            $messagesArray = $this->messageRepository->findAllByMember($member->getId());
-            return $messagesArray;
+            $messagesArray = $this->messageRepository->findAllByMember($member);
+            $byUserMessage = [];
+            foreach ($messagesArray as $row => $value) {
+                $memberMessage = $this->memberManager->getProfileData($row);
+                $username = $memberMessage->getUsername();
+                $byUserMessage[$username] = $value;
+            }
+
+            return $byUserMessage;
         } else {
             throw new RuntimeException('Unknown error');
         }

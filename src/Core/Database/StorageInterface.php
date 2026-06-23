@@ -13,7 +13,7 @@ interface StorageInterface
     public function delete(string $entity, array $data);
     public function deleteAll(string $table);
     public function findAll(string $table);
-    public function findAllWhere(string $table, string $column, string $operator, string $value);
     public function findOne(string $table, string $column, mixed $value): array;
     public function update(string $table, int $id, array $data): bool;
+    public function queryCustom(string $sql, array $data): array;
 }

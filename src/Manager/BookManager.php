@@ -77,6 +77,6 @@ class BookManager
         } else {
             $bookId = $book->getId();
         }
-        return $this->bookRepository->findById($bookId);
+        return $this->bookRepository->findOneById($bookId);
     }
 }

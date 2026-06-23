@@ -38,10 +38,10 @@ class BookEntity extends AbstractEntity
         $array = [
             'title' => $this->title,
             'author' => $this->author,
-            'imagePath' => $this->imagePath,
+            'image_path' => $this->imagePath,
             'description' => $this->description,
             'availability' => $this->availability->value,
-            'fkMemberId' => $this->fromMember->getId(),
+            'fk_member_id' => $this->fromMember->getId(),
             $this->getStorageIdName() => $this->getId(),
         ];
 

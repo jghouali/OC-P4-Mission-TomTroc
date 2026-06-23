@@ -6,12 +6,10 @@ namespace Green\TomTroc\Repository;
 
 use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Lib\Locales;
-use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Entity\MessageEntity;
 use Green\TomTroc\Enum\MessageStatusEnum;
-use PDOException;
-use RuntimeException;
+use PDO;
 
 class MessageRepository
 {
@@ -27,12 +25,13 @@ class MessageRepository
     // serialize-like this object to server StorageInterface
     public function oneToMessage(array $array): MessageEntity
     {
+        //var_dump($array);
         $message = new MessageEntity(
             $array['content'],
             Locales::getLocalDateTime($array['sent_at']),
             Locales::getLocalDateTime($array['modified_at']),
-            $this->memberRepository->findById($array['fk_from_member_id']),
-            $this->memberRepository->findById($array['fk_to_member_id']),
+            $this->memberRepository->findOneById($array['fk_from_member_id']),
+            $this->memberRepository->findOneById($array['fk_to_member_id']),
             MessageStatusEnum::tryFrom($array['is_read']),
         );
         $message->setId($array['message_id']);
@@ -52,11 +51,6 @@ class MessageRepository
         return $results;
     }
 
-    public function deleteAll(): bool
-    {
-        return $this->dbManager->deleteAll('messages');
-    }
-
     public function insert(MessageEntity $message): MessageEntity|false
     {
         $lastId = $this->dbManager->insert('messages', $message->toArray());
@@ -68,48 +62,22 @@ class MessageRepository
         return false;
     }
 
+    public function update(int $messageId, MessageEntity $message): bool
+    {
+        return $this->dbManager->update('messages', $messageId, $message->toArray());
+    }
+
     public function delete(MessageEntity $message): bool
     {
         return $this->dbManager->delete('messages', $message->toArray());
     }
 
-    public function findAll(): array
+    public function deleteAll(): bool
     {
-        $messages = $this->arrayToMessage(
-            $this->dbManager->findAll('messages')
-        );
-
-        return $messages;
+        return $this->dbManager->deleteAll('messages');
     }
 
-    public function findAllWhere(string $column, string $operator, string $value): array
-    {
-        $messages = [];
-
-        $columnWhiteList = ['content', 'sent_at', 'fk_from_member_id', 'fk_to_member_id', 'modified_at', 'is_read'];
-        if (in_array($column, $columnWhiteList)) {
-            $operatorWhiteList = ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'];
-            if (in_array($operator, $operatorWhiteList)) {
-                try {
-                    $messages = $this->dbManager->findAllWhere('messages', $column, $operator, $value);
-                } catch (PDOException $e) {
-                    if (Settings::get(Settings::APP_DEV)) {
-                        echo $e->getMessage();
-                    }
-                    // return [];
-                    echo $e->getMessage();
-                }
-            } else {
-                throw new RuntimeException('Invalid operator');
-            }
-        } else {
-            throw new RuntimeException('Invalid column');
-        }
-
-        return $this->arrayToMessage($messages);
-    }
-
-    public function findById(int $id): MessageEntity|null
+    public function findOneById(int $id): MessageEntity|null
     {
         $result = $this->dbManager->findOne('messages', MessageEntity::getStorageIdName(), $id);
 
@@ -123,6 +91,15 @@ class MessageRepository
         return $message;
     }
 
+    public function findAll(): array
+    {
+        $messages = $this->arrayToMessage(
+            $this->dbManager->findAll('messages')
+        );
+
+        return $messages;
+    }
+
     public function findAllByRecipient(int|MemberEntity $recipient): array
     {
         if (is_int($recipient)) {
@@ -130,8 +107,16 @@ class MessageRepository
         } else {
             $id = $recipient->getId();
         }
-
-        return $this->findAllWhere('fk_to_member_id', '=', "$id");
+        return $this->arrayToMessage(
+            $this->dbManager->queryCustom(
+                'SELECT *
+            FROM messages
+            WHERE fk_to_member_id = :member_id',
+                [
+                    'member_id' => [$id, PDO::PARAM_INT,],
+                ]
+            )
+        );
     }
 
     public function findAllByMember(int|MemberEntity $member): array
@@ -141,12 +126,26 @@ class MessageRepository
         } else {
             $id = $member->getId();
         }
-        return $this->dbManager->findAllWhere(
-            'messages',
-            "fk_from_member_id = $id OR fk_to_member_id",
-            '=',
-            "$id ORDER BY sent_at"
+        $results = $this->dbManager->queryCustom(
+            "SELECT if(fk_from_member_id = :member_id , fk_to_member_id, fk_from_member_id) as user,
+                    sent_at,
+                    if(fk_from_member_id = :member_id , 'sent', 'received') as action,
+                    content
+            FROM messages
+            WHERE fk_from_member_id = :member_id OR fk_to_member_id = :member_id
+            ORDER BY user",
+            [
+                'member_id' => [$id, PDO::PARAM_INT,],
+            ]
         );
+
+        $mybox = [];
+        foreach ($results as $message) {
+            $id = $message['user'];
+            $mybox[$id][] = $message;
+        }
+
+        return $mybox;
     }
 
     public function findAllBySender(int|MemberEntity $sender): array
@@ -156,24 +155,29 @@ class MessageRepository
         } else {
             $id = $sender->getId();
         }
-        return $this->findAllWhere(
-            'fk_from_member_id',
-            '=',
-            "$id"
+        return $this->arrayToMessage(
+            $this->dbManager->queryCustom(
+                'SELECT *
+            FROM messages
+            WHERE fk_from_member_id = :member_id',
+                [
+                    'member_id' => [$id, PDO::PARAM_INT,],
+                ]
+            )
         );
     }
 
     public function findAllByIsRead(MessageStatusEnum $status): array
     {
-        return $this->findAllWhere(
-            'is_read',
-            '=',
-            "$status->value"
+        return $this->arrayToMessage(
+            $this->dbManager->queryCustom(
+                'SELECT *
+            FROM messages
+            WHERE is_read = :status',
+                [
+                    'status' => [$status->value, PDO::PARAM_STR,],
+                ]
+            )
         );
-    }
-
-    public function update(int $messageId, MessageEntity $message): bool
-    {
-        return $this->dbManager->update('messages', $messageId, $message->toArray());
     }
 }

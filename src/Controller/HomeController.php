@@ -19,7 +19,7 @@ class HomeController
     {
         $recentBook = $this->bookManager->listLastBook(4);
         $data = [
-            'recent_book' => $recentBook,
+            'recent_books' => $recentBook,
         ];
         $homeView = new View('Tomtroc Accueil');
 
