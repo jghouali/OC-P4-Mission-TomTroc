@@ -148,7 +148,7 @@ class MemberManagerTest extends TestCase
 
         // EXPECT modifyProfile return MemberEntity
         // update $member
-        $member = Settings::getMemberRepository()->findById($member->getId());
+        $member = Settings::getMemberRepository()->findOneById($member->getId());
         $this->assertTrue($result::class === 'Green\TomTroc\Entity\MemberEntity');
         $this->assertSame('John Doe2', $member->getUserName());
         $this->assertSame('john.doe2@mail.com', $member->getEmail());

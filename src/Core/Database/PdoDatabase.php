@@ -59,12 +59,11 @@ class PdoDatabase implements StorageInterface
         $columns = [];
         $values = [];
 
-        //var_dump($data);
+        // pop the entity_id since we insert()
+        array_pop($data);
+
         foreach ($data as $column => $value) {
-            if (substr($column, -3) === '_id') {
-                continue;
-            }
-            $columns[] = $this->camelToSnake($column);
+            $columns[] = $column;
             $values[] = $value;
         }
 
@@ -80,16 +79,31 @@ class PdoDatabase implements StorageInterface
         return false;
     }
 
+    // This function get the entity to update as an array,
+    // unpack and update it in db
+    public function update(string $table, int $id, array $data): bool
+    {
+        $update = '';
+        foreach ($data as $column => $value) {
+            $update = $update . ' ' . $column . ' = \'' . $value . '\',';
+        }
+
+        $primary = substr($table, 0, strlen($table) - 1) . '_id';
+        $update = substr($update, 0, strlen($update) - 1);
+
+        $sql = "UPDATE $table SET $update WHERE $primary = $id";
+        $statement = self::$pdo->prepare("$sql");
+
+        return $statement->execute();
+    }
+
     // This function get the entity to delete as an array,
     // unpack and delete it in db
     public function delete(string $entity, array $data): bool
     {
         $where = '';
         foreach ($data as $column => $value) {
-            if (substr($column, -3) === '_id') {
-                continue;
-            }
-            $where = $where . $this->camelToSnake($column) . '=\'' . $value . '\' AND ';
+            $where = $where . $column . '=\'' . $value . '\' AND ';
         }
 
         $sql = "DELETE FROM $entity WHERE $where";
@@ -121,13 +135,32 @@ class PdoDatabase implements StorageInterface
 
     // This function search for all entity in table
     // that respond to the query-like given
-    public function findAllWhere(string $entity, string $column, string $operator, string $value): array
+    public function queryCustom(string $sql, array $data): array
     {
-        $sql = "SELECT * FROM $entity WHERE $column $operator '$value'";
-        $statement = self::$pdo->prepare("$sql");
+        preg_match_all('/:([\w]+)/', $sql, $matches);
+
+        foreach ($matches[1] as $key) {
+            if (!array_key_exists($key, $data)) {
+                throw new RuntimeException("Bind value :$key not present in data");
+            }
+        }
+
+        $statement = self::$pdo->prepare($sql);
+        $allowedType = [
+            PDO::PARAM_BOOL,
+            PDO::PARAM_INT,
+            PDO::PARAM_STR,
+            PDO::PARAM_NULL,
+        ];
+
+        foreach ($data as $key => [$value, $type]) {
+            if (!in_array($type, $allowedType, true)) {
+                throw new RuntimeException("Type :$type not allowed for key $key");
+            }
+            $statement->bindValue(':' . $key, $value, $type);
+        }
 
         $statement->execute();
-
         return $statement->fetchAll($this->fetchAllMode);
     }
 
@@ -158,24 +191,6 @@ class PdoDatabase implements StorageInterface
             $error = $result;
         }
         throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return " . $error);
-    }
-
-    // This function get the entity to update as an array,
-    // unpack and update it in db
-    public function update(string $table, int $id, array $data): bool
-    {
-        $update = '';
-        foreach ($data as $column => $value) {
-            $update = $update . ' ' . $this->camelToSnake($column) . ' = \'' . $value . '\',';
-        }
-
-        $primary = substr($table, 0, strlen($table) - 1) . '_id';
-        $update = substr($update, 0, strlen($update) - 1);
-
-        $sql = "UPDATE $table SET $update WHERE $primary = $id";
-        $statement = self::$pdo->prepare("$sql");
-
-        return $statement->execute();
     }
 
     // We replace camelCase property to snake_case sql column

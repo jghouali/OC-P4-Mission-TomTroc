@@ -115,71 +115,6 @@ class MessageRepositoryTest extends TestCase
         $this->assertSame(2, count(Settings::getMessageRepository()->findAll()));
     }
 
-    #[TestDox('FindAllWhere(\'content\', \'LIKE\', \'%Hello%\')')]
-    public function testFindAllWhere(): void
-    {
-        // GIVEN
-        // messages table is empty
-        $this->assertTrue(count(Settings::getMessageRepository()->findAll()) === 0);
-        // And have these 2 messages
-        $member = MemberEntityTest::instanciateValidMember();
-        $member->setUserName('john');
-        $member->setEmail('john@mail.com');
-        $member2 = MemberEntityTest::instanciateValidMember();
-        $member2->setUserName('jack');
-        $member2->setEmail('jack@mail.com');
-        Settings::getMemberRepository()->insert($member);
-        Settings::getMemberRepository()->insert($member2);
-        $message = MessageEntityTest::instanciateValidMessage();
-        $message->setContent('Salut');
-        $message->setFromMember($member);
-        $message->setToMember($member2);
-        $message2 = MessageEntityTest::instanciateValidMessage();
-        $message2->setContent('Hello, how are you ?');
-        $message2->setFromMember($member);
-        $message2->setToMember($member2);
-        //in the db
-        Settings::getMessageRepository()->insert($message);
-        Settings::getMessageRepository()->insert($message2);
-
-        // WHEN
-        // findAllWhere()
-        // EXPECT
-        // return 2
-        $this->assertSame(1, count(Settings::getMessageRepository()->findAllWhere('content', 'LIKE', '%Hello%')));
-    }
-
-    #[TestDox('FindAllWhere() return RunTime Exception with an error message on invalid data')]
-    public function testFindAllWhereInvalidData(): void
-    {
-        // GIVEN
-        // messages table is empty
-        $this->assertTrue(count(Settings::getMessageRepository()->findAll()) === 0);
-        // And have these 2 messages
-        $member = MemberEntityTest::instanciateValidMember();
-        $member->setUserName('john');
-        $member->setEmail('john@mail.com');
-        $member2 = MemberEntityTest::instanciateValidMember();
-        $member2->setUserName('jack');
-        $member2->setEmail('jack@mail.com');
-        Settings::getMemberRepository()->insert($member);
-        Settings::getMemberRepository()->insert($member2);
-        $message = MessageEntityTest::instanciateValidMessage();
-        $message->setContent('Salut');
-        $message->setFromMember($member);
-        $message->setToMember($member2);
-        //in the db
-        Settings::getMessageRepository()->insert($message);
-
-        // EXPECT
-        // a RunTime Exception with an error message
-        $this->expectException('RuntimeException');
-        $this->expectExceptionMessageIs('Invalid column');
-        // WHEN
-        // findAllWhere() with invalid data
-        Settings::getMessageRepository()->findAllWhere('contenu', 'LIKE', '%Hello%');
-    }
-
     #[TestDox('FindById())')]
     public function testFindById(): void
     {
@@ -203,10 +138,10 @@ class MessageRepositoryTest extends TestCase
         Settings::getMessageRepository()->insert($message);
 
         // WHEN
-        // findById()
+        // findOneById()
         // EXPECT
         // retrieve the message
-        $message2 = Settings::getMessageRepository()->findById($message->getId());
+        $message2 = Settings::getMessageRepository()->findOneById($message->getId());
         $this->assertSame('Hello', $message2->getContent());
     }
 
@@ -342,7 +277,7 @@ class MessageRepositoryTest extends TestCase
         Settings::getMessageRepository()->update($message->getId(), $message);
 
         // EXPECT getters give the data updated
-        $message2 = Settings::getMessageRepository()->findById($message->getId());
+        $message2 = Settings::getMessageRepository()->findOneById($message->getId());
         $this->assertSame('Nouveau message de John Doe', $message2->getContent());
     }
 }

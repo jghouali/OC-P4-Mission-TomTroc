@@ -30,7 +30,7 @@ class AuthentificationService
     public function getCurrentLoggedMember(): ?MemberEntity
     {
         if (isset($_SESSION['id'])) {
-            $result = Settings::getMemberRepository()->findById($_SESSION['id']);
+            $result = Settings::getMemberRepository()->findOneById($_SESSION['id']);
         } else {
             $result = null;
         }
@@ -58,7 +58,7 @@ class AuthentificationService
 
     public function login(string $email, string $password): bool
     {
-        $member = $this->memberRepository->findByEmail($email);
+        $member = $this->memberRepository->findOneByEmail($email);
         $hash = $member->getPasswordHash();
 
         if (is_string($hash)) {
