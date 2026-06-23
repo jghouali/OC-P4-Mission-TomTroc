@@ -6,6 +6,7 @@ namespace Tests\Manager;
 
 use Green\TomTroc\Core\Settings\Settings;
 use PHPUnit\Framework\TestCase;
+use Tests\Entity\MessageEntityTest;
 
 class MessageManagerTest extends TestCase
 {
@@ -54,23 +55,21 @@ class MessageManagerTest extends TestCase
     public function testSendMessagesWhenLoggedIn()
     {
         // GIVEN
-        $member1 = Settings::getAuthentificationService()->register(
+        Settings::getAuthentificationService()->register(
             'John',
             'john.doe@mail.com',
             'password',
             '/upload/avatars/image.png'
         );
+        Settings::getAuthentificationService()->login('john.doe@mail.com', 'password');
+
         $member2 = Settings::getAuthentificationService()->register(
             'Jack',
             'jack.sparrow@mail.com',
             'password',
             '/upload/avatars/image2.png'
         );
-
         $content = 'Hello';
-
-        Settings::getAuthentificationService()->login('john.doe@mail.com', 'password');
-
         $message = Settings::getMessageManager()->sendMessage($content, $member2);
 
         $this->assertSame('Hello', $message->getContent());
@@ -79,12 +78,7 @@ class MessageManagerTest extends TestCase
     public function testSendMessagesWhenNotLoggedInThrowRuntimeException()
     {
         // GIVEN
-        $member1 = Settings::getAuthentificationService()->register(
-            'John',
-            'john.doe@mail.com',
-            'password',
-            '/upload/avatars/image.png'
-        );
+        $content = 'Hello';
         $member2 = Settings::getAuthentificationService()->register(
             'Jack',
             'jack.sparrow@mail.com',
@@ -92,12 +86,10 @@ class MessageManagerTest extends TestCase
             '/upload/avatars/image2.png'
         );
 
-        $content = 'Hello';
-
         $this->expectException('RuntimeException');
         $this->expectExceptionMessageIs('You are not logged in');
 
-        $message = Settings::getMessageManager()->sendMessage($content, $member2);
+        Settings::getMessageManager()->sendMessage($content, $member2);
     }
 
     public function testMyMessageBox()
@@ -115,21 +107,32 @@ class MessageManagerTest extends TestCase
             'password',
             '/upload/avatars/image2.png'
         );
+        $member3 = Settings::getAuthentificationService()->register(
+            'Jean',
+            'jean.valjean@mail.com',
+            'password',
+            '/upload/avatars/image2.png'
+        );
 
         Settings::getAuthentificationService()->login('john.doe@mail.com', 'password');
 
-        $message = Settings::getMessageManager()->sendMessage('Hello', $member1);
+        Settings::getMessageManager()->sendMessage('Hello', $member2);
+        Settings::getMessageManager()->sendMessage('Hello', $member3);
+
+        $message2 = MessageEntityTest::instanciateValidMessage();
+        $message2->setFromMember($member2);
+        $message2->setToMember($member1);
+        $message2->setContent('Hello, How are you?');
+        Settings::getMessageRepository()->insert($message2);
 
         $messageArray = Settings::getMessageManager()->myMessageBox();
 
-        $this->assertSame('Hello', $message->getContent());
-        $this->assertSame(1, count($messageArray));
+        $this->assertSame(2, count($messageArray));
     }
 
     public function testMyMessageBoxWhenNotLoggedInTthrowRuntimeException()
     {
         // GIVEN
-
         $this->expectException('RuntimeException');
         $this->expectExceptionMessageIs('You are not logged in');
 

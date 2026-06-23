@@ -7,6 +7,7 @@ namespace Green\TomTroc\Core\Settings;
 use Green\TomTroc\Controller\BookController;
 use Green\TomTroc\Controller\HomeController;
 use Green\TomTroc\Controller\MemberController;
+use Green\TomTroc\Controller\MessageController;
 use Green\TomTroc\Core\Database\PdoDatabase;
 use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Router\Router;
@@ -35,6 +36,7 @@ class Settings
     private static HomeController $homeController;
     private static BookController $bookController;
     private static MemberController $memberController;
+    private static MessageController $messageController;
     // Configuration keys constants
     public const APP_NAME = 'app.name';
     public const APP_DEV = 'app.dev';
@@ -97,7 +99,8 @@ class Settings
         );
         self::$messageManager = new MessageManager(
             self::$messageRepository,
-            self::$authentificationService
+            self::$authentificationService,
+            self::$memberManager
         );
         // Router
         self::$router = new Router();
@@ -111,6 +114,11 @@ class Settings
         );
         self::$memberController = new MemberController(
             self::$bookManager,
+            self::$memberManager,
+            self::$authentificationService
+        );
+        self::$messageController = new MessageController(
+            self::$messageManager,
             self::$memberManager,
             self::$authentificationService
         );
@@ -272,6 +280,16 @@ class Settings
             return self::$memberController;
         } else {
             throw new RuntimeException('self::$memberController is not initialized');
+        }
+    }
+
+    // Initialize de MessageController on the settings
+    public static function getMessageController(): MessageController
+    {
+        if (isset(self::$messageController)) {
+            return self::$messageController;
+        } else {
+            throw new RuntimeException('self::$messageController is not initialized');
         }
     }
 }

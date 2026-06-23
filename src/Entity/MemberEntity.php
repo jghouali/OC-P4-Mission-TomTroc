@@ -73,11 +73,11 @@ class MemberEntity extends AbstractEntity implements EntityInterface
         return [
             'username' => $this->username,
             'email' => $this->email,
-            'passwordHash' => $this->passwordHash,
-            'avatarPath' => $this->avatarPath,
-            'createdAt' => $this->createdAt->format('Y-m-d H:i:s'),
-            'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
-            'notificationCount' => "$this->notificationCount",
+            'password_hash' => $this->passwordHash,
+            'avatar_path' => $this->avatarPath,
+            'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updatedAt->format('Y-m-d H:i:s'),
+            'notification_count' => "$this->notificationCount",
             'status' => $this->status->value,
             $this->getStorageIdName() => $this->getId(),
         ];

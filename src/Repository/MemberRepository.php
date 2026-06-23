@@ -6,10 +6,8 @@ namespace Green\TomTroc\Repository;
 
 use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Lib\Locales;
-use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
-use PDOException;
 use RuntimeException;
 
 class MemberRepository
@@ -51,11 +49,6 @@ class MemberRepository
         return $results;
     }
 
-    public function deleteAll(): bool
-    {
-        return $this->dbManager->deleteAll('members');
-    }
-
     public function insert(MemberEntity $member): MemberEntity|false
     {
         $lastId = $this->dbManager->insert('members', $member->toArray());
@@ -65,41 +58,30 @@ class MemberRepository
         return $member;
     }
 
+    public function update(int $memberId, MemberEntity $member): MemberEntity|false
+    {
+        $member->setUpdatedAt(Locales::getLocalDateTime());
+        $result = $this->dbManager->update('members', $memberId, $member->toArray());
+
+        if ($result) {
+            $memberUpdated = $this->findOneById($memberId);
+            return $memberUpdated;
+        }
+
+        return $result;
+    }
+
     public function delete(MemberEntity $member): bool
     {
         return $this->dbManager->delete('members', $member->toArray());
     }
 
-    public function findAll(): array
+    public function deleteAll(): bool
     {
-        return $this->arrayToMember($this->dbManager->findAll('members'));
+        return $this->dbManager->deleteAll('members');
     }
 
-    public function findAllWhere(string $column, string $operator, string $value): array
-    {
-        $columnWhiteList = ['username', 'email'];
-        if (in_array($column, $columnWhiteList)) {
-            $operatorWhiteList = ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'];
-            if (in_array($operator, $operatorWhiteList)) {
-                try {
-                    $members = $this->dbManager->findAllWhere('members', $column, $operator, $value);
-                } catch (PDOException $e) {
-                    if (Settings::get(Settings::APP_DEV)) {
-                        echo $e->getMessage();
-                    }
-                    return [];
-                }
-            } else {
-                throw new RuntimeException('Invalid operator');
-            }
-        } else {
-            throw new RuntimeException('Invalid column');
-        }
-
-        return $this->arrayToMember($members);
-    }
-
-    public function findById(int $id): MemberEntity
+    public function findOneById(int $id): MemberEntity
     {
         $result = $this->dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
 
@@ -108,7 +90,7 @@ class MemberRepository
         return $member;
     }
 
-    public function findByUsername(string $username): MemberEntity
+    public function findOneByUsername(string $username): MemberEntity
     {
         $result = $this->dbManager->findOne('members', 'username', $username);
 
@@ -121,7 +103,7 @@ class MemberRepository
         return $member;
     }
 
-    public function findByEmail(string $email): MemberEntity
+    public function findOneByEmail(string $email): MemberEntity
     {
         $result = $this->dbManager->findOne('members', 'email', $email);
 
@@ -134,16 +116,8 @@ class MemberRepository
         return $member;
     }
 
-    public function update(int $memberId, MemberEntity $member): MemberEntity|false
+    public function findAll(): array
     {
-        $member->setUpdatedAt(Locales::getLocalDateTime());
-        $result = $this->dbManager->update('members', $memberId, $member->toArray());
-
-        if ($result) {
-            $memberUpdated = $this->findById($memberId);
-            return $memberUpdated;
-        }
-
-        return $result;
+        return $this->arrayToMember($this->dbManager->findAll('members'));
     }
 }

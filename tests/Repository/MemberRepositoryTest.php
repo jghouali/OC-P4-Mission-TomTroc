@@ -89,74 +89,6 @@ class MemberRepositoryTest extends TestCase
         $this->assertSame(2, count(Settings::getMemberRepository()->findAll()));
     }
 
-    #[TestDox('FindAllWhere(\'username\', \'LIKE\', \'%jean%\')')]
-    public function testFindAllWhere(): void
-    {
-        // GIVEN
-        // books table is empty
-        $this->assertTrue(count(Settings::getMemberRepository()->findAll()) === 0);
-        // And have these 4 members in db
-        $member = MemberEntityTest::instanciateValidMember();
-        $member->setUserName('jean');
-        $member->setEmail('jean@mail.com');
-        Settings::getMemberRepository()->insert($member);
-
-        $member2 = MemberEntityTest::instanciateValidMember();
-        $member2->setUserName('matthieu');
-        $member2->setEmail('matthieu@mail.com');
-        Settings::getMemberRepository()->insert($member2);
-
-        $member3 = MemberEntityTest::instanciateValidMember();
-        $member3->setUserName('jeanne');
-        $member3->setEmail('jeanne@mail.com');
-        Settings::getMemberRepository()->insert($member3);
-
-        $member4 = MemberEntityTest::instanciateValidMember();
-        $member4->setUserName('jeannette');
-        $member4->setEmail('jeannette@mail.com');
-        Settings::getMemberRepository()->insert($member4);
-
-        $this->assertSame(4, count(Settings::getMemberRepository()->findAll()));
-
-        // WHEN
-        // findAllWhere('username', 'LIKE', '%jean%')
-        // EXPECT
-        // retieve 3 members
-        $this->assertSame(3, count(Settings::getMemberRepository()->findAllWhere('username', 'LIKE', '%jean%')));
-    }
-
-    #[TestDox('FindAllWhere() return [] with invalid informations')]
-    public function testFindAllWhereInvalidData(): void
-    {
-        // GIVEN
-        // books table is empty
-        $this->assertTrue(count(Settings::getMemberRepository()->findAll()) === 0);
-        // And have this member in db
-        $member = MemberEntityTest::instanciateValidMember();
-        $member->setUserName('jean');
-        $member->setEmail('jean@mail.com');
-        Settings::getMemberRepository()->insert($member);
-
-        $this->assertSame(1, count(Settings::getMemberRepository()->findAll()));
-
-        // EXPECT
-        // a RuntimException and an error message
-        $this->expectException('RuntimeException');
-        $this->expectExceptionMessageIs('Invalid column');
-        // WHEN
-        // findAllWhere() with column that do not exist : user LIKE '%jean%'
-        $this->assertSame(0, count(Settings::getMemberRepository()->findAllWhere('user', 'LIKE', '%jean%')));
-
-        // EXPECT
-        // a RuntimException and an error message
-        $this->expectException('RuntimeException');
-        $this->expectExceptionMessageIs('Invalid column');
-        // WHEN
-        // findAllWhere() with operator
-        // not in ['=', '>', '<', '>=', '<=', 'LIKE', 'ILIKE'] : username + '%jean%'
-        $this->assertSame(0, count(Settings::getMemberRepository()->findAllWhere('username', '+', '%jean%')));
-    }
-
     #[TestDox('FindById()')]
     public function testFindById(): void
     {
@@ -168,8 +100,8 @@ class MemberRepositoryTest extends TestCase
         Settings::getMemberRepository()->insert($member);
 
         // WHEN
-        // findById()
-        $member2 = Settings::getMemberRepository()->findById($member->getId());
+        // findOneById()
+        $member2 = Settings::getMemberRepository()->findOneById($member->getId());
 
         // EXPECT
         // return $member informations
@@ -194,8 +126,8 @@ class MemberRepositoryTest extends TestCase
         Settings::getMemberRepository()->insert($member);
 
         // WHEN
-        // findByEmail()
-        $member2 = Settings::getMemberRepository()->findByUsername($member->getUserName());
+        // findOneByEmail()
+        $member2 = Settings::getMemberRepository()->findOneByUsername($member->getUserName());
 
         // EXPECT
         // return $member informations
@@ -220,8 +152,8 @@ class MemberRepositoryTest extends TestCase
         Settings::getMemberRepository()->insert($member);
 
         // WHEN
-        // findByEmail()
-        $member2 = Settings::getMemberRepository()->findByEmail($member->getEmail());
+        // findOneByEmail()
+        $member2 = Settings::getMemberRepository()->findOneByEmail($member->getEmail());
 
         // EXPECT
         // return $member informations
@@ -249,7 +181,7 @@ class MemberRepositoryTest extends TestCase
 
         // WHEN
         // update()
-        $member2 = Settings::getMemberRepository()->findByEmail($member->getEmail());
+        $member2 = Settings::getMemberRepository()->findOneByEmail($member->getEmail());
         $dateFormatted = Locales::getLocalFormattedDateTime('1 days ago 12:00');
         $date = Locales::getLocalDateTime($dateFormatted);
         $member2->setUserName('John Doe');

@@ -108,7 +108,7 @@ class BookControllerTest extends TestCase
 
     public function testBookDetail()
     {
-        $book6 = Settings::getBookRepository()->findByTitle('Titredulivre6');
+        $book6 = Settings::getBookRepository()->findOneByTitle('Titredulivre6');
         $this->assertMatchesRegularExpression(
             '/Titredulivre6/',
             Settings::getBookController()->showBookDetail($book6->getId())
@@ -117,7 +117,7 @@ class BookControllerTest extends TestCase
 
     public function testBookEdit()
     {
-        $book6 = Settings::getBookRepository()->findByTitle('Titredulivre6');
+        $book6 = Settings::getBookRepository()->findOneByTitle('Titredulivre6');
         $this->assertMatchesRegularExpression(
             '/Edit Titredulivre6/',
             Settings::getBookController()->showBookEdit($book6->getId())

@@ -38,11 +38,11 @@ class MessageEntity extends AbstractEntity implements EntityInterface
     {
         return [
             'content' => $this->content,
-            'sentAt' => $this->sentAt->format('Y-m-d H:i:s'),
-            'modifiedAt' => $this->modifiedAt->format('Y-m-d H:i:s'),
-            'fkFromMemberId' => $this->fromMember->getId(),
-            'fkToMemberId' => $this->toMember->getId(),
-            'isRead' => $this->isRead->value,
+            'sent_at' => $this->sentAt->format('Y-m-d H:i:s'),
+            'modified_at' => $this->modifiedAt->format('Y-m-d H:i:s'),
+            'fk_from_member_id' => $this->fromMember->getId(),
+            'fk_to_member_id' => $this->toMember->getId(),
+            'is_read' => $this->isRead->value,
             $this->getStorageIdName() => $this->getId(),
         ];
     }
