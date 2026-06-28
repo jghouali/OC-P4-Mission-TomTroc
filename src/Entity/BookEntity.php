@@ -28,7 +28,7 @@ class BookEntity extends AbstractEntity
         $this->title = $this->validateField('title', $title, ValidatorEnum::alphanumeric_150);
         $this->author = $this->validateField('author', $author, ValidatorEnum::alphanumeric_150);
         $this->imagePath = $this->validateField('imagePath', $imagePath, ValidatorEnum::uploadFile);
-        $this->description = $this->validateField('description', $description, ValidatorEnum::alphanumeric_150);
+        $this->description = $this->validateField('description', $description, ValidatorEnum::textContent);
         $this->availability = $availability;
         $this->fromMember = $fromMember;
     }

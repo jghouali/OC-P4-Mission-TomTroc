@@ -32,7 +32,7 @@ class RouterTest extends TestCase
             $data = ob_get_clean();
             return "LoginForm with :\n $data";
         };
-        Settings::getRouter()->register('/login', $testCallable);
+        Settings::getRouter()->register('GET', '/login', $testCallable);
         $requestUri = 'GET /login?rememberme=1';
         $request = new Request($requestUri);
         $response = Settings::getRouter()->resolve($request);
@@ -49,7 +49,7 @@ class RouterTest extends TestCase
         $request = new Request('GET /thisroute?parameter=thisvalue');
         $response = Settings::getRouter()->resolve($request);
 
-        $this->assertMatchesRegularExpression('/\/thisroute not found/', $response->getHttpContent());
+        $this->assertMatchesRegularExpression('/Page \'\/thisroute\' not found/', $response->getHttpContent());
         $this->assertSame(404, $response->getHttpCode());
     }
 }

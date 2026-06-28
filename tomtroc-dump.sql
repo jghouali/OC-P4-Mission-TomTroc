@@ -48,7 +48,7 @@ INSERT INTO `members` (`member_id`, `username`, `email`, `avatar_path`, `passwor
 
 INSERT INTO `books` (`book_id`, `title`, `author`, `image_path`, `description`, `availability`, `fk_member_id`) VALUES
 (1, 'Esther', 'Alabaster', '/upload/books/Esther.jpg', 'Description1', 'AVAILABLE', 1),
-(2, 'The Kinfolk Table', 'Nathan Williams', '/upload/books/The Kinfolk Table.jpg', 'Description2', 'AVAILABLE', 2),
+(2, 'The Kinfolk Table', 'Nathan Williams', '/upload/books/The Kinfolk Table.jpg', 'J\'ai récemment plongé dans les pages de \'The Kinfolk Table\' et j\'ai été enchanté par cette œuvre captivante. Ce livre va bien au-delà d\'une simple collection de recettes ; il célèbre l\'art de partager des moments authentiques autour de la table.<br><br>Les photographies magnifiques et le ton chaleureux captivent dès le départ, transportant le lecteur dans un voyage à travers des recettes et des histoires qui mettent en avant la beauté de la simplicité et de la convivialité.<br><br>Chaque page est une invitation à ralentir, à savourer et à créer des souvenirs durables avec les êtres chers.<br><br>\'The Kinfolk Table\' incarne parfaitement l\'esprit de la cuisine et de la camaraderie, et il est certain que ce livre trouvera une place spéciale dans le cœur de tout amoureux de la cuisine et des rencontres inspirantes.', 'AVAILABLE', 2),
 (3, 'Wabi Sabi', 'Beth Kempton', '/upload/books/Wabi Sabi.jpg', 'Description3', 'AVAILABLE', 2),
 (4, 'Milk & honey', 'Rupi Kaur', '/upload/books/Milk & honey.jpg', 'Description4', 'AVAILABLE', 4),
 (5, 'Delight!', 'Justin Rossow', '/upload/books/Delight.jpg', 'Description5', 'AVAILABLE', 5),

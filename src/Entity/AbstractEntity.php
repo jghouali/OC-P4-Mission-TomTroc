@@ -50,10 +50,16 @@ abstract class AbstractEntity implements EntityInterface
         switch ($validator->value) {
             case 'textContent':
                 // A-Z or a-z or 0-9 or _ or - or space minimum 1 maximum 50
+                // \p{L} — all unicode letters
+                // \p{N} — all numbers
+                // \p{P} — all punctuation
+                // \p{Z} — all separators/spaces
+                // \p{S} — all symbols
+                // /u — unicode mode
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
+                    ['options' => ['regexp' => '/^[\p{L}\p{N}\p{P}\p{Z}\p{S}\n\r]+$/u']]
                 );
                 $message = $propertyName . ' must only contain characters in a-z, A-Z, 0-9, -, _, ?, !, ,, ., : or -';
                 break;
@@ -63,7 +69,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
+                    ['options' => ['regexp' => '/^[\p{L}\p{N}\p{P}\p{Z}\p{S}\n\r]{1,50}$/u']]
                 );
                 $message = $propertyName . ' must only contain 50 characters in a-z, A-Z, 0-9, _ or -';
                 break;
@@ -73,7 +79,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
+                    ['options' => ['regexp' => '/^[\p{L}\p{N}\p{P}\p{Z}\p{S}\n\r]{1,150}$/']]
                 );
                 $message = $propertyName . ' must only contain 150 characters in a-z, A-Z, 0-9, _ or -';
                 break;

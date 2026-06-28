@@ -14,8 +14,8 @@ use Green\TomTroc\Entity\BookEntity;
 
         <div class="flex flex-col sm:flex-row">
 
-            <div class="max-h-[449px] sm:max-h-[720px] basis-1/2">
-                <img src="<?= $book->getImagePath() ?>" alt="" class="w-full sm:max-h-[720px] object-center sm:object-cover">
+            <div class="max-w-[720px] max-h-[863px] basis-1/2 overflow-hidden min-w-0">
+                <img src="<?= $book->getImagePath() ?>" alt="" class="w-full h-full object-cover">
             </div>
 
             <div class="basis-1/2 bg-background-light">
@@ -24,7 +24,7 @@ use Green\TomTroc\Entity\BookEntity;
                     <p class="pb-[32px] font-inter font-normal text-[16px] tracking-normal leading-none text-grey">par <?= $book->getAuthor() ?></p>
                     <img src="/images/Line-3.png" alt="" class="pb-[32px] ">
                     <p class="pb-[16px] font-inter font-semibold text-[8px] tracking-[0.08em] leading-none text-dark">DESCRIPTION</p>
-                    <p class="pb-[40px] sm:pb-[32px] font-inter font-normal text-[14px] tracking-normal leading-none text-dark"><?= $book->getDescription() ?></p>
+                    <p class="md:w-[485px] pr-[2px] pb-[40px] sm:pb-[32px] font-inter font-normal text-[14px] tracking-normal leading-[1.3] text-dark"><?= $book->getDescription() ?></p>
                     <p class="pb-[16px] font-inter font-semibold text-[8px] tracking-[0.08em] leading-none text-dark">PROPRIÉTAIRE</p>
                     <div class="rounded-full w-[157px] h-[60px] bg-white">
                         <div class="flex flex-row items-center gap-[12px] py-[6px] pl-[6px]">

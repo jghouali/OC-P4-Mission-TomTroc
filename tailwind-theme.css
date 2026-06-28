@@ -9,7 +9,9 @@
     --color-primary-hover: rgba(0, 109, 65, 1);
     --color-grey: rgba(166, 166, 166, 1);
     --color-light-grey: rgba(240, 240, 240, 1);
+    --color-light-grey2: rgba(245, 243, 239, 1);
     --color-background-light: rgba(250, 249, 247, 1);
+    --color-greyblue: rgba(237, 242, 246, 1);
 }
 
 @layer components {

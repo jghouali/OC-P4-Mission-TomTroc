@@ -127,7 +127,9 @@ class Settings
         // Router
         self::$router = new Router(self::$errorController);
 
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
     }
 
     // Support multiple configuration files, last one overwite precedent keys
