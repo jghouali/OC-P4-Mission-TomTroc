@@ -53,7 +53,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s\?\,\.\!]*$/']]
+                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
                 );
                 $message = $propertyName . ' must only contain characters in a-z, A-Z, 0-9, -, _, ?, !, ,, ., : or -';
                 break;
@@ -63,7 +63,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s]{1,50}$/']]
+                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
                 );
                 $message = $propertyName . ' must only contain 50 characters in a-z, A-Z, 0-9, _ or -';
                 break;
@@ -73,7 +73,7 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\s]{1,150}$/']]
+                    ['options' => ['regexp' => '/^[a-zA-Z0-9\-\_\;\:\'\"&àéè\s\?\,\.\!]*$/']]
                 );
                 $message = $propertyName . ' must only contain 150 characters in a-z, A-Z, 0-9, _ or -';
                 break;
@@ -102,7 +102,10 @@ abstract class AbstractEntity implements EntityInterface
                 $validated = filter_var(
                     $field,
                     FILTER_VALIDATE_REGEXP,
-                    ['options' => ['regexp' => '/^\/upload\/' . $directory . '\/[a-zA-Z0-9\-]{1,50}\.png$/']]
+                    [
+                        'options' =>
+                        ['regexp' => '/^\/upload\/' . $directory . '\/[a-zA-Z0-9\-\s\.&\,]{1,50}\.(png|jpg)$/'],
+                    ]
                 );
                 $message = $propertyName . ' must be stored in /upload/' . $directory .
                     '/, contain only a-z, A-Z or 0-9, and have .png extension';

@@ -103,17 +103,15 @@ class MemberRepository
         return $member;
     }
 
-    public function findOneByEmail(string $email): MemberEntity
+    public function findOneByEmail(string $email): MemberEntity|null
     {
         $result = $this->dbManager->findOne('members', 'email', $email);
 
         if (count($result) === 0) {
-            throw new RuntimeException("User $email doe not exist");
+            return null;
         }
 
-        $member = $this->oneToMember($result);
-
-        return $member;
+        return $this->oneToMember($result);
     }
 
     public function findAll(): array

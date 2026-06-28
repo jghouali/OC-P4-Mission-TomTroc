@@ -178,19 +178,10 @@ class PdoDatabase implements StorageInterface
         } catch (Exception $e) {
             throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return  : " . $e->getMessage());
         }
-        if (is_array($result)) {
-            if (count($result) === 0) {
-                $error = 'no result';
-            } else {
-                return $result;
-            }
+        if (!$result) {
+            $result = [];
         }
-        if ($result === false) {
-            $error = 'false';
-        } else {
-            $error = $result;
-        }
-        throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return " . $error);
+        return $result;
     }
 
     // We replace camelCase property to snake_case sql column

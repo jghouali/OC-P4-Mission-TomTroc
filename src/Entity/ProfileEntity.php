@@ -13,6 +13,7 @@ class ProfileEntity
 {
     private BookRepository $bookRepository;
     private string $username;
+    private string $email;
     private string $avatarPath;
     private string $memberSince;
     private array $books;
@@ -22,6 +23,7 @@ class ProfileEntity
     {
         $this->bookRepository = Settings::getBookRepository();
         $this->username = $member->getUserName();
+        $this->email = $member->getEmail();
         $this->avatarPath = $member->getAvatarPath();
         $this->memberSince = $this->memberSince(Locales::getLocalDateTime($member->getCreatedAt()));
         $this->books = $this->bookRepository->findAllByMember($member);
@@ -58,6 +60,11 @@ class ProfileEntity
     public function getUsername(): string
     {
         return $this->username;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
     }
 
     public function getAvatarPath(): string

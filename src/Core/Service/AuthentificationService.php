@@ -59,6 +59,11 @@ class AuthentificationService
     public function login(string $email, string $password): bool
     {
         $member = $this->memberRepository->findOneByEmail($email);
+
+        if ($member === null) {
+            return false;
+        }
+
         $hash = $member->getPasswordHash();
 
         if (is_string($hash)) {
@@ -71,5 +76,13 @@ class AuthentificationService
             return false;
         }
         throw new RuntimeException('This email is not registered');
+    }
+
+    public function logout(): bool
+    {
+        unset($_SESSION['id']);
+        unset($_SESSION['avatarPath']);
+        unset($_SESSION['username']);
+        return true;
     }
 }

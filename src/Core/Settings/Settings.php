@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Green\TomTroc\Core\Settings;
 
 use Green\TomTroc\Controller\BookController;
+use Green\TomTroc\Controller\ErrorController;
 use Green\TomTroc\Controller\HomeController;
 use Green\TomTroc\Controller\MemberController;
 use Green\TomTroc\Controller\MessageController;
@@ -35,6 +36,7 @@ class Settings
     private static Router $router;
     private static HomeController $homeController;
     private static BookController $bookController;
+    private static ErrorController $errorController;
     private static MemberController $memberController;
     private static MessageController $messageController;
     // Configuration keys constants
@@ -62,6 +64,7 @@ class Settings
     // This function need to be call first to use Settings
     public static function initialize()
     {
+
         if (self::get(Settings::DB_STORAGE) === 'mysql') {
             self::$dbManager = new PdoDatabase(
                 Settings::get(Settings::DB_DSN),
@@ -102,9 +105,8 @@ class Settings
             self::$authentificationService,
             self::$memberManager
         );
-        // Router
-        self::$router = new Router();
         // Controllers
+        self::$errorController = new ErrorController();
         self::$homeController = new HomeController(
             self::$bookManager
         );
@@ -122,6 +124,10 @@ class Settings
             self::$memberManager,
             self::$authentificationService
         );
+        // Router
+        self::$router = new Router(self::$errorController);
+
+        session_start();
     }
 
     // Support multiple configuration files, last one overwite precedent keys
@@ -250,6 +256,16 @@ class Settings
             return self::$router;
         } else {
             throw new RuntimeException('self::$router is not initialized');
+        }
+    }
+
+    // Initialize de ErrorController on the settings
+    public static function getErrorController(): ErrorController
+    {
+        if (isset(self::$errorController)) {
+            return self::$errorController;
+        } else {
+            throw new RuntimeException('self::$errorController is not initialized');
         }
     }
 

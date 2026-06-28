@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Controller;
 
+use Green\TomTroc\Core\Http\Response;
 use Green\TomTroc\Core\Service\AuthentificationService;
 use Green\TomTroc\Core\View\View;
 use Green\TomTroc\Manager\BookManager;
@@ -33,6 +34,24 @@ class MemberController
         return $registerView->render($data, TEMPLATE_DIR . '/register.php');
     }
 
+    public function login(string $email, string $password): Response
+    {
+        $logged = $this->authentificationService->login(
+            $email,
+            $password
+        );
+        if ($logged) {
+            return new Response('Succes', 303, ['Location:' => '/']);
+        }
+        return new Response($this->showLogin(true), 200);
+    }
+
+    public function logout(): Response
+    {
+        $notLogged = $this->authentificationService->logout();
+        return new Response('Succes', 303, ['Location:' => '/']);
+    }
+
     public function register(string $username, string $email, string $password): string
     {
         $member = $this->authentificationService->register(
@@ -49,20 +68,38 @@ class MemberController
         throw new RuntimeException('Error occured while regester this member');
     }
 
-    public function showLogin(): string
+    public function showLogin(?bool $showLoginError = null): string
     {
         $registerView = new View('Connexion');
-        $data = [];
+        if ($showLoginError === null || $showLoginError === false) {
+            $data = [];
+        } else {
+            $data = [
+                'loginError' => 'Login error : check your credential',
+            ];
+        }
         return $registerView->render($data, TEMPLATE_DIR . '/login.php');
     }
 
     public function showMyProfile(): string
     {
-        $myid = $this->authentificationService->getCurrentLoggedMember()->getId();
-        $myInformations = $this->memberManager->getProfileData($myid);
-        $registerView = new View('Mon Compte');
-        $data = [];
-        return $registerView->render($data, TEMPLATE_DIR . '/my-profile.php');
+        $loggedUser = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedUser !== null) {
+            $myid = $this->authentificationService->getCurrentLoggedMember()->getId();
+            $myInformations = $this->memberManager->getProfileData($myid);
+            $registerView = new View('Mon Compte');
+            $data = [
+                'myInformations' => $myInformations,
+            ];
+            return $registerView->render($data, TEMPLATE_DIR . '/my-profile.php');
+        } else {
+            $errorMessage = 'Not Logged';
+            $errorView = new View('Not Logged');
+            $data = [
+                'errorMessage' => $errorMessage,
+            ];
+            return $errorView->render($data, TEMPLATE_DIR . '/error.php');
+        }
     }
 
     public function showProfile(int $id): string

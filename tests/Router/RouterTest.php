@@ -33,7 +33,7 @@ class RouterTest extends TestCase
             return "LoginForm with :\n $data";
         };
         Settings::getRouter()->register('/login', $testCallable);
-        $requestUri = '/login?rememberme=1';
+        $requestUri = 'GET /login?rememberme=1';
         $request = new Request($requestUri);
         $response = Settings::getRouter()->resolve($request);
 
@@ -46,7 +46,7 @@ class RouterTest extends TestCase
     #[TestDox('resolve() on an inexisting route return pageNotFoundContent()')]
     public function testPageNotFoundContent(): void
     {
-        $request = new Request('/thisroute?parameter=thisvalue');
+        $request = new Request('GET /thisroute?parameter=thisvalue');
         $response = Settings::getRouter()->resolve($request);
 
         $this->assertMatchesRegularExpression('/\/thisroute not found/', $response->getHttpContent());

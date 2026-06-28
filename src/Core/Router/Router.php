@@ -4,26 +4,23 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Router;
 
+use Exception;
+use Green\TomTroc\Controller\ErrorController;
 use Green\TomTroc\Core\Http\Request;
 use Green\TomTroc\Core\Http\Response;
+use RuntimeException;
 
 class Router
 {
     protected array $routes;
     protected Request $request;
+    private ErrorController $errorController;
 
-    public function __construct(array $routes = [])
+    public function __construct(ErrorController $errorController, array $routes = [])
     {
+        $this->errorController = $errorController;
         $this->routes = $routes;
-        if (!isset($this->routes['/'])) {
-            $this->routes['/'] = function ($params) {
-                $stringContent = '/?';
-                foreach ($params as $param => $value) {
-                    $stringContent = "$stringContent" . "$param=$value";
-                }
-                return $stringContent;
-            };
-        }
+
         if (!isset($this->routes['default'])) {
             $this->routes['default'] = function ($location, $params) {
                 $stringContent = "$location?";
@@ -35,9 +32,22 @@ class Router
         }
     }
 
-    public function register(string $route, callable $function)
+    public function register(string $httpMethod, string $route, callable $function)
     {
-        $this->routes[$route] = $function;
+        $allowedMethods = [
+            'GET',
+            'POST',
+        ];
+
+        if (!in_array($httpMethod, $allowedMethods, true)) {
+            throw new RuntimeException(
+                "Trying to register an invalid Method : \'$httpMethod\'<br>Allowed method : " .
+                    implode(', ', $allowedMethods) . '<br>',
+                500
+            );
+        }
+
+        $this->routes[$route][$httpMethod] = $function;
     }
 
     public function pageNotFoundContent(Request $request): string
@@ -45,15 +55,29 @@ class Router
         return $request->getHttpLocation() . ' not found';
     }
 
-    public function resolve(Request $request)
+    public function resolve(Request $request): Response
     {
-        if (key_exists($request->getHttpLocation(), $this->routes)) {
-            $content = $this->routes[$request->getHttpLocation()]($request->getHttpParameters(true));
+        try {
+            $location = $request->getHttpLocation();
+            $method = $request->getHttpMethod();
 
-            return new Response($content);
-        } else {
-            $content = $this->pageNotFoundContent($request);
-            return new Response($content, 404);
+            if (key_exists($location, $this->routes)) {
+                if (key_exists($method, $this->routes[$location])) {
+                    $content = $this->routes[$location][$method]($request->getHttpParameters(true));
+
+                    if (is_string($content)) {
+                        return new Response($content, 200);
+                    }
+                    return $content;
+                } else {
+                    throw new RuntimeException("Method '$method' Not Allowed on route '$location'", 405);
+                }
+            } else {
+                throw new RuntimeException("Page '$location' not found", 404);
+            }
+        } catch (Exception $exception) {
+            $response = $this->errorController->handleException($exception);
+            return $response;
         }
     }
 }

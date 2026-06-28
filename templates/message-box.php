@@ -4,7 +4,7 @@
  * @var array $messagesByUser send by View
  */
 ?>
-<main>
+<main class="flex-1">
     <?php foreach ($messagesByUser as $user => $messageArray): ?>
         <div>
             <div><?= $user ?></div>
