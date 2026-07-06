@@ -30,9 +30,9 @@
                             </div>
 
                             <div class="pt-[16px] sm:pt-[20px] pb-[19px] sm:pb-[23px] pl-[11px] sm:pl-[14px] rounded-b-[15px] bg-white">
-                                <p class="font-inter font-normal leading-none tracking-normal text-[13px] sm:text-[16px] text-black"><?= $book->securePrintText($book->getTitle()) ?></p>
-                                <p class="pt-[7px] sm:pt-[8px] font-inter font-normal leading-none tracking-normal text-[11px] sm:text-[14px] text-grey"><?= $book->securePrintText($book->getAuthor()) ?></p>
-                                <p class="pt-[19px] sm:pt-[22px] font-inter italic font-normal leading-none tracking-normal text-[8px] sm:text-[10px] text-grey"><em>Vendu par : <?= $book->securePrintText($book->getFromMember()->getUsername()) ?></em></p>
+                                <p class="font-inter font-normal leading-none tracking-normal text-[13px] sm:text-[16px] text-black"><?= mb_strimwidth($book->securePrintText($book->getTitle()), 0, 22, '...') ?></p>
+                                <p class="pt-[7px] sm:pt-[8px] font-inter font-normal leading-none tracking-normal text-[11px] sm:text-[14px] text-grey"><?= mb_strimwidth($book->securePrintText($book->getAuthor()), 0, 20, '...') ?></p>
+                                <p class="pt-[19px] sm:pt-[22px] font-inter italic font-normal leading-none tracking-normal text-[8px] sm:text-[10px] text-grey"><em>Vendu par : <?= mb_strimwidth($book->securePrintText($book->getFromMember()->getUsername()), 0, 20, '...') ?></em></p>
                             </div>
                         </div>
                     </a>
