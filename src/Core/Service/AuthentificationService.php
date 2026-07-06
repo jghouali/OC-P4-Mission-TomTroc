@@ -37,12 +37,18 @@ class AuthentificationService
         return $result;
     }
 
-    public function register(string $username, string $email, string $password, string $avatar_path): MemberEntity|false
+    public function generatePasswordHash(string $password): string
     {
-        $passwordHash = password_hash(
+        return password_hash(
             $password,
             $this->passwordHashAlgorithm
         );
+    }
+
+    public function register(string $username, string $email, string $password, string $avatar_path): MemberEntity|false
+    {
+        $passwordHash = $this->generatePasswordHash($password);
+
         $member = new MemberEntity(
             $username,
             $email,

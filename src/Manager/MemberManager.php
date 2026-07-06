@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Green\TomTroc\Manager;
 
 use Green\TomTroc\Core\Service\AuthentificationService;
-use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Entity\ProfileEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
@@ -37,9 +36,11 @@ class MemberManager
         } elseif ($loggedMember::class === 'Green\TomTroc\Entity\MemberEntity') {
             $loggedMember->setUserName($username);
             $loggedMember->setEmail($email);
-            $loggedMember->setPasswordHash(
-                password_hash($password, Settings::get(Settings::APP_SECURITY_HASH_ALGO))
-            );
+            if ($password !== $loggedMember->getPasswordHash()) {
+                $loggedMember->setPasswordHash(
+                    $this->authentificationService->generatePasswordHash($password)
+                );
+            }
             $loggedMember->setAvatarPath($avatarPath);
             return $this->memberRepository->update($loggedMember->getId(), $loggedMember);
         } else {
@@ -64,9 +65,14 @@ class MemberManager
         );
     }
 
-    public function getProfileData(int $id): ProfileEntity
+    public function getProfileData(int $id): ProfileEntity|false
     {
         $member = $this->memberRepository->findOneById($id);
+
+        if (!$member) {
+            return false;
+        }
+
         $profile = new ProfileEntity($member);
         return $profile;
     }
