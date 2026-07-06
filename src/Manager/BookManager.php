@@ -85,4 +85,22 @@ class BookManager
         }
         return $this->bookRepository->findOneById($bookId);
     }
+
+    public function updateBook(BookEntity $book): BookEntity|false
+    {
+        $bookId = $book->getId();
+        if (is_int($bookId)) {
+            return $this->bookRepository->update($bookId, $book);
+        }
+        return false;
+    }
+
+    public function deleteBook(BookEntity $book): bool
+    {
+        $bookId = $book->getId();
+        if (is_int($bookId)) {
+            return $this->bookRepository->delete($book);
+        }
+        return false;
+    }
 }
