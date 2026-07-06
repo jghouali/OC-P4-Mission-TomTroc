@@ -12,6 +12,7 @@ use Green\TomTroc\Repository\BookRepository;
 class ProfileEntity
 {
     private BookRepository $bookRepository;
+    private int $id;
     private string $username;
     private string $email;
     private string $avatarPath;
@@ -22,6 +23,7 @@ class ProfileEntity
     public function __construct(MemberEntity $member)
     {
         $this->bookRepository = Settings::getBookRepository();
+        $this->id = $member->getId();
         $this->username = $member->getUserName();
         $this->email = $member->getEmail();
         $this->avatarPath = $member->getAvatarPath();
@@ -55,6 +57,16 @@ class ProfileEntity
         } else {
             return "$bookCount livres";
         }
+    }
+
+    public function securePrintText(string $string): string
+    {
+        return nl2br(htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
     }
 
     public function getUsername(): string

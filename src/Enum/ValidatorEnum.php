@@ -6,12 +6,13 @@ namespace Green\TomTroc\Enum;
 
 enum ValidatorEnum: string
 {
-    case alphanumeric_50 = '50alphanumeric_-';
-    case alphanumeric_150 = '150alphanumeric_-';
     case bcryptHash = 'bcryptHash';
     case uploadFile = 'uploadFile';
+    case imagePath = 'imagePath';
     case email = 'email';
     case humanDate = 'humanDate';
     case intCounter = 'intCounter';
-    case textContent = 'textContent';
+    case textContent50 = 'textContent50';
+    case textContent150 = 'textContent150';
+    case textContent2000 = 'textContent2000';
 }
