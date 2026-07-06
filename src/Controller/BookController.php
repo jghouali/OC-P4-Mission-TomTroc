@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Controller;
 
-use Green\TomTroc\Core\Http\Response;
-use Green\TomTroc\Core\Service\AuthentificationService;
-use Green\TomTroc\Core\Service\ValidatorService;
 use Green\TomTroc\Core\View\View;
-use Green\TomTroc\Enum\BookStatusEnum;
-use Green\TomTroc\Enum\ValidatorEnum;
 use Green\TomTroc\Manager\BookManager;
 use Green\TomTroc\Manager\MemberManager;
-use RuntimeException;
 
 class BookController
 {
