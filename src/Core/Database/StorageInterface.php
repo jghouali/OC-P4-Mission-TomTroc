@@ -9,11 +9,10 @@ namespace Green\TomTroc\Core\Database;
 interface StorageInterface
 {
     public function open();
-    public function insert(string $entity, array $data);
-    public function delete(string $entity, array $data);
-    public function deleteAll(string $table);
-    public function findAll(string $table);
-    public function findOne(string $table, string $column, mixed $value): array;
+    public function insert(string $entity, array $data): int|false;
+    public function delete(string $entity, array $data): bool;
+    public function deleteAll(string $table): bool;
+    public function findAll(string $table): array;
     public function update(string $table, int $id, array $data): bool;
     public function queryCustom(string $sql, array $data): array;
 }
