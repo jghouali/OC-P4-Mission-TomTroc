@@ -148,6 +148,26 @@ class MessageRepository
         return $mybox;
     }
 
+    public function findAllByMemberNotRead(int|MemberEntity $member): array
+    {
+        if (is_int($member)) {
+            $id = $member;
+        } else {
+            $id = $member->getId();
+        }
+        $results = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM messages
+            WHERE fk_to_member_id = :member_id
+            AND is_read = 0',
+            [
+                'member_id' => [$id, PDO::PARAM_INT,],
+            ]
+        );
+
+        return $results;
+    }
+
     public function findAllBySender(int|MemberEntity $sender): array
     {
         if (is_int($sender)) {
@@ -179,5 +199,23 @@ class MessageRepository
                 ]
             )
         );
+    }
+
+    public function setReadtoAllMessageByUser(MemberEntity $toMember, MemberEntity $fromMember)
+    {
+        $result = $this->dbManager->queryCustom(
+            'UPDATE messages
+            SET is_read = 1
+            WHERE fk_from_member_id = :fromMember
+            AND fk_to_member_id = :toMember',
+            [
+                'fromMember' => [$fromMember->getId(), PDO::PARAM_INT,],
+                'toMember' => [$toMember->getId(), PDO::PARAM_INT,],
+            ]
+        );
+        if ($result === []) {
+            return true;
+        }
+        return false;
     }
 }

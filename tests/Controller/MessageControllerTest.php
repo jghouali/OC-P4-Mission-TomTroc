@@ -110,10 +110,12 @@ class MessageControllerTest extends TestCase
 
         $result = Settings::getMessageController()->showMyBox();
         $this->assertMatchesRegularExpression('/How are you ?/', $result);
-
-        $this->assertMatchesRegularExpression(
-            '/I am fine/',
-            Settings::getMessageController()->sendMessage('I am fine', $this->member2)
+        $result = Settings::getMessageController()->sendMessage('I am fine', $this->member2);
+        $this->assertSame(
+            'Green\TomTroc\Core\Http\Response',
+            $result::class
         );
+
+        $this->assertSame(303, $result->getHttpCode());
     }
 }
