@@ -93,16 +93,31 @@ class BookRepository
 
     public function findOneById(int $id): BookEntity|false
     {
-        return $this->oneToBook(
-            $this->dbManager->findOne('books', BookEntity::getStorageIdName(), $id)
+        $primary_key = BookEntity::getStorageIdName();
+
+        $result = $this->dbManager->queryCustom(
+            "SELECT *
+            FROM books
+            WHERE $primary_key = :book_id",
+            [
+                'book_id' => [$id, PDO::PARAM_INT,],
+            ]
         );
+        return $this->oneToBook($result[0]);
     }
 
     public function findOneByTitle(string $title): BookEntity|null
     {
-        $result = $this->dbManager->findOne('books', 'title', $title);
+        $result = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM books
+            WHERE title = :title',
+            [
+                'title' => [$title, PDO::PARAM_STR,],
+            ]
+        );
 
-        return $this->oneToBook($result);
+        return $this->oneToBook($result[0]);
     }
 
     public function findAll(): array
