@@ -50,7 +50,7 @@ class Request
                 }
             }
         } else {
-            $httpParameters = $postData;
+            $httpParameters = array_merge($postData, $_FILES);
         }
 
         $this->httpMethod = $httpMethod;

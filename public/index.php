@@ -15,6 +15,8 @@ $router = Settings::getRouter();
 
 $router->register('GET', '/', Settings::getHomeController()->showHomePage(...));
 
+$router->register('GET', '/available-books', Settings::getBookController()->showBooks(...));
+$router->register('GET', '/book-detail', Settings::getBookController()->showBookDetail(...));
 $router->register('GET', '/available-books', function () {
     return Settings::getBookController()->showAvailableBooks();
 });
