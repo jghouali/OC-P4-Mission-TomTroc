@@ -180,11 +180,11 @@ class BookEntityTest extends TestCase
         // Have a RuntimeException
         $this->expectException(RuntimeException::class);
         // And an appropriate error message
-        $this->expectExceptionMessageMatches('/title must only contain 150 characters in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/title must only contain 150 readable characters/');
 
         // WHEN
-        // a field is invalid at setTitle()
-        $this->validBook->setTitle('Bad+Username');
+        // a field is invalid at setTitle() with a control character rejected by the validator
+        $this->validBook->setTitle("Invalid\x00Title");
     }
 
     #[TestDox('validateField() return RuntimeException on invalid field on setAuthor()')]
@@ -197,11 +197,11 @@ class BookEntityTest extends TestCase
         // Have a RuntimeException
         $this->expectException(RuntimeException::class);
         // And an appropriate error message
-        $this->expectExceptionMessageMatches('/author must only contain 150 characters in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/author must only contain 150 readable characters/');
 
         // WHEN
         // a field is invalid at setAuthor()
-        $this->validBook->setAuthor('Bad+Author');
+        $this->validBook->setAuthor("Bad\x00Author");
     }
 
     #[TestDox('validateField() return RuntimeException on invalid field on setImagePath()')]
@@ -232,10 +232,10 @@ class BookEntityTest extends TestCase
         // Have a RuntimeException
         $this->expectException(RuntimeException::class);
         // And an appropriate error message
-        $this->expectExceptionMessageMatches('/description must only contain 150 characters/');
+        $this->expectExceptionMessageMatches('/description must only contain 2000 readable characters/');
 
         // WHEN
         // a field is invalid at setDescription()
-        $this->validBook->setDescription('Bad+Description');
+        $this->validBook->setDescription("Bad\x00Description");
     }
 }

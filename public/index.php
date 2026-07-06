@@ -12,10 +12,38 @@ Settings::addSettingsFile(ROOT_DIR . '/config/custom.php');
 Settings::initialize();
 
 $router = Settings::getRouter();
-$router->register('/', function () {
-    return Settings::getHomeController()->showHomePage();
+
+$router->register('GET', '/', Settings::getHomeController()->showHomePage(...));
+
+$router->register('GET', '/available-books', function () {
+    return Settings::getBookController()->showAvailableBooks();
 });
-$request = new Request($_SERVER['REQUEST_URI']);
+$router->register('GET', '/book-detail', function (array $params) {
+    return Settings::getBookController()->showBookDetail((int) $params['id']);
+});
+
+$router->register('GET', '/login', function () {
+    return Settings::getMemberController()->showLogin();
+});
+$router->register('GET', '/logout', function () {
+    return Settings::getMemberController()->logout();
+});
+$router->register('POST', '/login', function (array $params) {
+    return Settings::getMemberController()->login($params['email'], $params['password']);
+});
+
+$router->register('GET', '/register', function () {
+    return Settings::getMemberController()->showRegister();
+});
+$router->register('GET', '/my-profile', function () {
+    return Settings::getMemberController()->showMyProfile();
+});
+
+$router->register('GET', '/my-box', function () {
+    return Settings::getMessageController()->showMyBox();
+});
+
+$request = new Request($_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI'], $_POST);
 
 $content = $router->resolve($request);
 

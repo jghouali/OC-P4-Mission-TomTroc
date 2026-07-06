@@ -98,11 +98,11 @@ class BookControllerTest extends TestCase
         unset($_SESSION['avatarPath']);
     }
 
-    public function testshowAvailableBooks()
+    public function testshowBooks()
     {
         $this->assertMatchesRegularExpression(
             '/Titredulivre6/',
-            Settings::getBookController()->showAvailableBooks()
+            Settings::getBookController()->showBooks()
         );
     }
 

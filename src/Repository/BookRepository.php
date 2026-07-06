@@ -23,8 +23,12 @@ class BookRepository
     }
     // serialize-like this object to server StorageInterface
 
-    public function oneToBook(array $array): BookEntity
+    public function oneToBook(array $array): BookEntity|false
     {
+        if ($array === []) {
+            return false;
+        }
+
         $book = new BookEntity(
             $array['title'],
             $array['author'],
@@ -69,9 +73,12 @@ class BookRepository
         return false;
     }
 
-    public function update(int $bookId, BookEntity $book): bool
+    public function update(int $bookId, BookEntity $book): BookEntity|false
     {
-        return $this->dbManager->update('books', $bookId, $book->toArray());
+        if ($this->dbManager->update('books', $bookId, $book->toArray())) {
+            return $book;
+        }
+        return false;
     }
 
     public function delete(BookEntity $book): bool
@@ -150,6 +157,22 @@ class BookRepository
             LIMIT :count',
             [
                 'count' => [$count, PDO::PARAM_INT],
+            ]
+        );
+
+        return $this->arrayToBook($results);
+    }
+
+    public function findAllFilter(string $search): array
+    {
+        $results = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM books
+            WHERE title LIKE :search
+            OR author LIKE :search
+            ORDER BY book_id DESC',
+            [
+                'search' => ["%$search%", PDO::PARAM_STR],
             ]
         );
 

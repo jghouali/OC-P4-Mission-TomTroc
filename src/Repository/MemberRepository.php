@@ -19,8 +19,12 @@ class MemberRepository
         $this->dbManager = $dbManager;
     }
 
-    public function oneToMember(array $array): MemberEntity
+    public function oneToMember(array $array): MemberEntity|false
     {
+        if ($array === []) {
+            return false;
+        }
+
         $member = new MemberEntity(
             $array['username'],
             $array['email'],
@@ -81,7 +85,7 @@ class MemberRepository
         return $this->dbManager->deleteAll('members');
     }
 
-    public function findOneById(int $id): MemberEntity
+    public function findOneById(int $id): MemberEntity|false
     {
         $result = $this->dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
 
@@ -103,17 +107,15 @@ class MemberRepository
         return $member;
     }
 
-    public function findOneByEmail(string $email): MemberEntity
+    public function findOneByEmail(string $email): MemberEntity|null
     {
         $result = $this->dbManager->findOne('members', 'email', $email);
 
         if (count($result) === 0) {
-            throw new RuntimeException("User $email doe not exist");
+            return null;
         }
 
-        $member = $this->oneToMember($result);
-
-        return $member;
+        return $this->oneToMember($result);
     }
 
     public function findAll(): array

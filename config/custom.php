@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'app' => [
         'timezone' => 'Indian/Reunion',
+        'dev' => false,
     ],
     'security' => [
         'hash_algo' => PASSWORD_BCRYPT,

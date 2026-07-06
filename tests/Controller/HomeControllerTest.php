@@ -70,7 +70,7 @@ class HomeControllerTest extends TestCase
             Settings::getHomeController()->showHomePage()
         );
         $this->assertMatchesRegularExpression(
-            '/<h1>Tomtroc Accueil<\/h1>/',
+            '/Rejoignez nos lecteurs passionnés/',
             Settings::getHomeController()->showHomePage()
         );
         $this->assertMatchesRegularExpression(

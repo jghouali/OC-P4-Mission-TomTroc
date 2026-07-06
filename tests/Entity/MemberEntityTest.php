@@ -178,11 +178,11 @@ class MemberEntityTest extends TestCase
         // Have a RuntimeException
         $this->expectException(RuntimeException::class);
         // And an appropriate error message
-        $this->expectExceptionMessageMatches('/username must only contain 50 characters in a-z, A-Z, 0-9, _ or -/');
+        $this->expectExceptionMessageMatches('/username must only contain 50 readable characters/');
 
         // WHEN
         // a field is invalid at setUserName()
-        $this->validMember->setUserName('Bad+Username');
+        $this->validMember->setUserName("Bad\x00Username");
     }
 
     #[TestDox('validateField() return RuntimeException on invalid field on setEmail()')]

@@ -12,7 +12,9 @@ use Green\TomTroc\Repository\BookRepository;
 class ProfileEntity
 {
     private BookRepository $bookRepository;
+    private int $id;
     private string $username;
+    private string $email;
     private string $avatarPath;
     private string $memberSince;
     private array $books;
@@ -21,7 +23,9 @@ class ProfileEntity
     public function __construct(MemberEntity $member)
     {
         $this->bookRepository = Settings::getBookRepository();
+        $this->id = $member->getId();
         $this->username = $member->getUserName();
+        $this->email = $member->getEmail();
         $this->avatarPath = $member->getAvatarPath();
         $this->memberSince = $this->memberSince(Locales::getLocalDateTime($member->getCreatedAt()));
         $this->books = $this->bookRepository->findAllByMember($member);
@@ -55,9 +59,24 @@ class ProfileEntity
         }
     }
 
+    public function securePrintText(string $string): string
+    {
+        return nl2br(htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
     public function getUsername(): string
     {
         return $this->username;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
     }
 
     public function getAvatarPath(): string

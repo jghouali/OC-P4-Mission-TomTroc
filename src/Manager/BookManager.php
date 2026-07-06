@@ -58,6 +58,12 @@ class BookManager
         }
     }
 
+    public function listBooks(?string $search = ''): array|bool
+    {
+        $result = $this->bookRepository->findAllFilter($search);
+        return $result;
+    }
+
     public function listAvailableBook(): array|bool
     {
         $result = $this->bookRepository->findAllByAvailability(BookStatusEnum::AVAILABLE);
@@ -70,7 +76,7 @@ class BookManager
         return $result;
     }
 
-    public function getBookDetail(BookEntity|int $book): BookEntity|bool
+    public function getBookDetail(BookEntity|int $book): BookEntity|false
     {
         if (is_int($book)) {
             $bookId = $book;

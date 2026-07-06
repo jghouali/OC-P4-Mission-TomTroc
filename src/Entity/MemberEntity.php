@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Green\TomTroc\Entity;
 
 use DateTime;
+use Green\TomTroc\Core\Service\ValidatorService;
 use Green\TomTroc\Enum\MemberStatusEnum;
 use Green\TomTroc\Enum\ValidatorEnum;
 
@@ -30,37 +31,37 @@ class MemberEntity extends AbstractEntity implements EntityInterface
         MemberStatusEnum $status
     ) {
 
-        $this->username = $this->validateField(
+        $this->username = ValidatorService::validateField(
             'username',
             $username,
-            ValidatorEnum::alphanumeric_50
+            ValidatorEnum::textContent50
         );
-        $this->email = $this->validateField(
+        $this->email = ValidatorService::validateField(
             'email',
             $email,
             ValidatorEnum::email
         );
-        $this->passwordHash = $this->validateField(
+        $this->passwordHash = ValidatorService::validateField(
             'passwordHash',
             $passwordHash,
             ValidatorEnum::bcryptHash
         );
-        $this->avatarPath = $this->validateField(
+        $this->avatarPath = ValidatorService::validateField(
             'avatarPath',
             $avatarPath,
-            ValidatorEnum::uploadFile
+            ValidatorEnum::imagePath
         );
-        $this->createdAt = $this->validateField(
+        $this->createdAt = ValidatorService::validateField(
             'createdAt',
             $createdAt,
             ValidatorEnum::humanDate
         );
-        $this->updatedAt = $this->validateField(
+        $this->updatedAt = ValidatorService::validateField(
             'updatedAt',
             $updatedAt,
             ValidatorEnum::humanDate
         );
-        $this->notificationCount = $this->validateField(
+        $this->notificationCount = ValidatorService::validateField(
             'notificationCount',
             $notificationCount,
             ValidatorEnum::intCounter
@@ -130,16 +131,16 @@ class MemberEntity extends AbstractEntity implements EntityInterface
 
     public function setUserName(string $username): void
     {
-        $this->username = $this->validateField(
+        $this->username = ValidatorService::validateField(
             'username',
             $username,
-            ValidatorEnum::alphanumeric_50
+            ValidatorEnum::textContent50
         );
     }
 
     public function setEmail(string $email): void
     {
-        $this->email = $this->validateField(
+        $this->email = ValidatorService::validateField(
             'email',
             $email,
             ValidatorEnum::email
@@ -148,7 +149,7 @@ class MemberEntity extends AbstractEntity implements EntityInterface
 
     public function setPasswordHash(string $passwordHash): void
     {
-        $this->passwordHash = $this->validateField(
+        $this->passwordHash = ValidatorService::validateField(
             'passwordHash',
             $passwordHash,
             ValidatorEnum::bcryptHash
@@ -157,16 +158,16 @@ class MemberEntity extends AbstractEntity implements EntityInterface
 
     public function setAvatarPath(string $avatarPath): void
     {
-        $this->avatarPath = $this->validateField(
+        $this->avatarPath = ValidatorService::validateField(
             'avatarPath',
             $avatarPath,
-            ValidatorEnum::uploadFile
+            ValidatorEnum::imagePath
         );
     }
 
     public function setCreatedAt(DateTime $createdAt): void
     {
-        $this->createdAt = $this->validateField(
+        $this->createdAt = ValidatorService::validateField(
             'createdAt',
             $createdAt,
             ValidatorEnum::humanDate
@@ -175,7 +176,7 @@ class MemberEntity extends AbstractEntity implements EntityInterface
 
     public function setUpdatedAt(DateTime $updatedAt): void
     {
-        $this->updatedAt = $this->validateField(
+        $this->updatedAt = ValidatorService::validateField(
             'updatedAt',
             $updatedAt,
             ValidatorEnum::humanDate
@@ -189,7 +190,7 @@ class MemberEntity extends AbstractEntity implements EntityInterface
 
     public function setNotificationCount(int $notificationCount): void
     {
-        $this->notificationCount = $this->validateField(
+        $this->notificationCount = ValidatorService::validateField(
             'notificationCount',
             $notificationCount,
             ValidatorEnum::intCounter

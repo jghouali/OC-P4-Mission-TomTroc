@@ -28,15 +28,24 @@ class MessageController
 
     public function showMyBox()
     {
-        $myid = $this->authentificationService->getCurrentLoggedMember()->getId();
-        $messagesByUser = $this->messageManager->myMessageBox();
+        $loggedUser = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedUser !== null) {
+            $messagesByUser = $this->messageManager->myMessageBox();
 
-        $availableBooksView = new View('Messagerie');
-        $data = [
-            'messagesByUser' => $messagesByUser,
-        ];
+            $availableBooksView = new View('Messagerie');
+            $data = [
+                'messagesByUser' => $messagesByUser,
+            ];
 
-        return $availableBooksView->render($data, TEMPLATE_DIR . '/message-box.php');
+            return $availableBooksView->render($data, TEMPLATE_DIR . '/message-box.php');
+        } else {
+            $errorMessage = 'Not Logged';
+            $errorView = new View('Not Logged');
+            $data = [
+                'errorMessage' => $errorMessage,
+            ];
+            return $errorView->render($data, TEMPLATE_DIR . '/error.php');
+        }
     }
 
     public function sendMessage(string $content, MemberEntity $member)
