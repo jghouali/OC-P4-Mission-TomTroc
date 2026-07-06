@@ -137,8 +137,8 @@ class BookManagerTest extends TestCase
         $book1 = Settings::getBookRepository()->insert($book1);
         $book2 = Settings::getBookRepository()->insert($book2);
 
-        // WHEN user listAvailableBook()
-        $result = Settings::getBookManager()->listAvailableBook();
+        // WHEN user listBooks()
+        $result = Settings::getBookManager()->listBooks();
 
         // EXPECT getMyLibrary return array with books
         $this->assertTrue(is_array($result));
@@ -201,10 +201,10 @@ class BookManagerTest extends TestCase
         $book1->setFromMember($member);
         Settings::getBookRepository()->insert($book1);
 
-        // WHEN user listAvailableBook()
+        // WHEN user getBookDetail()
         $result = Settings::getBookManager()->getBookDetail($book1->getId());
 
-        // EXPECT getMyLibrary return array with books
+        // EXPECT getBookDetail return array with books
         $this->assertSame($book1->getTitle(), $result->getTitle());
         $this->assertSame($book1->getId(), $result->getId());
     }
