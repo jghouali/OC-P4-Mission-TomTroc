@@ -119,7 +119,7 @@ class MessageRepository
         );
     }
 
-    public function findAllByMember(int|MemberEntity $member): array
+    public function findAllByMemberSorted(int|MemberEntity $member): array
     {
         if (is_int($member)) {
             $id = $member;
@@ -127,13 +127,13 @@ class MessageRepository
             $id = $member->getId();
         }
         $results = $this->dbManager->queryCustom(
-            "SELECT if(fk_from_member_id = :member_id , fk_to_member_id, fk_from_member_id) as user,
+            'SELECT if(fk_from_member_id = :member_id , fk_to_member_id, fk_from_member_id) as user,
                     sent_at,
-                    if(fk_from_member_id = :member_id , 'sent', 'received') as action,
+                    if(fk_from_member_id = :member_id , \'sent\', \'received\') as action,
                     content
             FROM messages
             WHERE fk_from_member_id = :member_id OR fk_to_member_id = :member_id
-            ORDER BY user",
+            ORDER BY user',
             [
                 'member_id' => [$id, PDO::PARAM_INT,],
             ]

@@ -23,8 +23,12 @@ class BookRepository
     }
     // serialize-like this object to server StorageInterface
 
-    public function oneToBook(array $array): BookEntity
+    public function oneToBook(array $array): BookEntity|false
     {
+        if ($array === []) {
+            return false;
+        }
+
         $book = new BookEntity(
             $array['title'],
             $array['author'],
@@ -69,9 +73,12 @@ class BookRepository
         return false;
     }
 
-    public function update(int $bookId, BookEntity $book): bool
+    public function update(int $bookId, BookEntity $book): BookEntity|false
     {
-        return $this->dbManager->update('books', $bookId, $book->toArray());
+        if ($this->dbManager->update('books', $bookId, $book->toArray())) {
+            return $book;
+        }
+        return false;
     }
 
     public function delete(BookEntity $book): bool

@@ -102,6 +102,7 @@ class Settings
         );
         self::$messageManager = new MessageManager(
             self::$messageRepository,
+            self::$memberRepository,
             self::$authentificationService,
             self::$memberManager
         );
