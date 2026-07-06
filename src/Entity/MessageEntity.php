@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Green\TomTroc\Entity;
 
 use DateTime;
+use Green\TomTroc\Core\Service\ValidatorService;
 use Green\TomTroc\Enum\MessageStatusEnum;
 use Green\TomTroc\Enum\ValidatorEnum;
 
@@ -26,9 +27,9 @@ class MessageEntity extends AbstractEntity implements EntityInterface
         MessageStatusEnum $isRead,
     ) {
 
-        $this->content = $this->validateField('content', $content, ValidatorEnum::textContent);
-        $this->sentAt = $this->validateField('sentAt', $sentAt, ValidatorEnum::humanDate);
-        $this->modifiedAt = $this->validateField('modifiedAt', $modifiedAt, ValidatorEnum::humanDate);
+        $this->content = ValidatorService::validateField('content', $content, ValidatorEnum::textContent2000);
+        $this->sentAt = ValidatorService::validateField('sentAt', $sentAt, ValidatorEnum::humanDate);
+        $this->modifiedAt = ValidatorService::validateField('modifiedAt', $modifiedAt, ValidatorEnum::humanDate);
         $this->fromMember = $fromMember;
         $this->toMember = $toMember;
         $this->isRead = $isRead;
@@ -54,7 +55,7 @@ class MessageEntity extends AbstractEntity implements EntityInterface
 
     public function setContent(string $content): void
     {
-        $this->content = $this->validateField('content', $content, ValidatorEnum::textContent);
+        $this->content = ValidatorService::validateField('content', $content, ValidatorEnum::textContent2000);
     }
 
     public function setIsRead(MessageStatusEnum $isRead): void
@@ -64,12 +65,12 @@ class MessageEntity extends AbstractEntity implements EntityInterface
 
     public function setSentAt(DateTime $sentAt): void
     {
-        $this->sentAt = $this->validateField('sentAt', $sentAt, ValidatorEnum::humanDate);
+        $this->sentAt = ValidatorService::validateField('sentAt', $sentAt, ValidatorEnum::humanDate);
     }
 
     public function setModifiedAt(DateTime $modifiedAt): void
     {
-        $this->modifiedAt = $this->validateField('modifiedAt', $modifiedAt, ValidatorEnum::humanDate);
+        $this->modifiedAt = ValidatorService::validateField('modifiedAt', $modifiedAt, ValidatorEnum::humanDate);
     }
 
     public function setFromMember(MemberEntity $fromMember): void

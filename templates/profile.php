@@ -8,7 +8,7 @@
  * @var array $books send by View
  */
 ?>
-<main>
+<main class="flex-1">
     <?= $username ?>
     <?= $avatarPath ?>
     Membre depuis <?= $memberSince ?>

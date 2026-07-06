@@ -19,9 +19,9 @@ class BookController
         $this->bookManager = $bookManager;
     }
 
-    public function showAvailableBooks()
+    public function showBooks(?string $search = '')
     {
-        $result = $this->bookManager->listAvailableBook();
+        $result = $this->bookManager->listBooks($search);
         $availableBooksView = new View('Nos Livres');
         $data = [
             'avalaibleBooks' => $result,

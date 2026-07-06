@@ -169,7 +169,7 @@ class MessageEntityTest extends TestCase
         // WHEN
         // content is invalid at MemberEntity creation
         $message = new MessageEntity(
-            'Hello <script XSS Attack of the Death>',
+            "Hello \x00",
             self::$date,
             self::$date,
             $member1,
@@ -188,11 +188,11 @@ class MessageEntityTest extends TestCase
         // Have a RuntimeException
         $this->expectException(RuntimeException::class);
         // And an appropriate error message
-        $this->expectExceptionMessageMatches('/content must only contain characters/');
+        $this->expectExceptionMessageMatches('/content must only contain 2000 readable characters/');
 
         // WHEN
         // a field is invalid at setContent()
-        $this->validMessage->setContent('Bad+Username');
+        $this->validMessage->setContent("Bad\x00Content");
     }
 
     #[TestDox('validateField() return RuntimeException on invalid field on setSentAt()')]

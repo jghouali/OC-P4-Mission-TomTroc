@@ -56,24 +56,27 @@ class PdoDatabase implements StorageInterface
     // unpack and insert it in db
     public function insert(string $entity, array $data): int|false
     {
+        $params = [];
         $columns = [];
-        $values = [];
+        $valuesArray = [];
 
         // pop the entity_id since we insert()
         array_pop($data);
 
         foreach ($data as $column => $value) {
+            $valuesArray[] = ":$column";
             $columns[] = $column;
-            $values[] = $value;
+            $params[":$column"] = $value;
         }
 
         $columns = implode(', ', $columns);
-        $values = '(\'' . implode('\', \'', $values) . '\')';
+        $valuesString = implode(', ', $valuesArray);
 
-        $sql = "INSERT INTO $entity ($columns) VALUES $values";
+        $sql = "INSERT INTO $entity ($columns) VALUES ($valuesString)";
+
         $statement = self::$pdo->prepare("$sql");
 
-        if ($statement->execute()) {
+        if ($statement->execute($params)) {
             return (int) self::$pdo->lastInsertId();
         }
         return false;
@@ -81,37 +84,46 @@ class PdoDatabase implements StorageInterface
 
     // This function get the entity to update as an array,
     // unpack and update it in db
-    public function update(string $table, int $id, array $data): bool
+    public function update(string $entity, int $id, array $data): bool
     {
-        $update = '';
+        $setArray = [];
+        $params = [];
+
         foreach ($data as $column => $value) {
-            $update = $update . ' ' . $column . ' = \'' . $value . '\',';
+            $setArray[] = "$column = :$column";
+            $params[":$column"] = $value;
         }
 
-        $primary = substr($table, 0, strlen($table) - 1) . '_id';
-        $update = substr($update, 0, strlen($update) - 1);
+        $primary = substr($entity, 0, strlen($entity) - 1) . '_id';
+        $setString = implode(', ', $setArray);
 
-        $sql = "UPDATE $table SET $update WHERE $primary = $id";
-        $statement = self::$pdo->prepare("$sql");
+        $sql = "UPDATE $entity SET $setString WHERE $primary = :primary_id";
 
-        return $statement->execute();
+        $params[':primary_id'] = $id;
+
+        $statement = self::$pdo->prepare($sql);
+        return $statement->execute($params);
     }
 
     // This function get the entity to delete as an array,
     // unpack and delete it in db
     public function delete(string $entity, array $data): bool
     {
-        $where = '';
+        $whereArray = [];
+        $params = [];
+
         foreach ($data as $column => $value) {
-            $where = $where . $column . '=\'' . $value . '\' AND ';
+            $whereArray[] = "$column = :$column";
+            $params[":$column"] = $value;
         }
 
-        $sql = "DELETE FROM $entity WHERE $where";
-        $sql = substr($sql, 0, strlen($sql) - 5);
+        $whereString = implode(' AND ', $whereArray);
+
+        $sql = "DELETE FROM $entity WHERE $whereString";
 
         $statement = self::$pdo->prepare("$sql");
 
-        return $statement->execute();
+        return $statement->execute($params);
     }
 
     // This function delete all the table
@@ -168,29 +180,22 @@ class PdoDatabase implements StorageInterface
     // that respond to the query-like given
     public function findOne(string $table, string $column, mixed $value): array
     {
-        $sql = "SELECT * FROM $table WHERE $column = '$value'";
+        $sql = "SELECT * FROM $table WHERE $column = :value";
 
         $statement = self::$pdo->prepare("$sql");
-        $statement->execute();
+        $statement->execute([
+            ':value' => $value,
+        ]);
 
         try {
             $result = $statement->fetch($this->fetchMode);
         } catch (Exception $e) {
             throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return  : " . $e->getMessage());
         }
-        if (is_array($result)) {
-            if (count($result) === 0) {
-                $error = 'no result';
-            } else {
-                return $result;
-            }
+        if (!$result) {
+            $result = [];
         }
-        if ($result === false) {
-            $error = 'false';
-        } else {
-            $error = $result;
-        }
-        throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return " . $error);
+        return $result;
     }
 
     // We replace camelCase property to snake_case sql column
