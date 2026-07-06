@@ -8,6 +8,7 @@ use Green\TomTroc\Core\Database\StorageInterface;
 use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
+use PDO;
 use RuntimeException;
 
 class MemberRepository
@@ -87,35 +88,58 @@ class MemberRepository
 
     public function findOneById(int $id): MemberEntity|false
     {
-        $result = $this->dbManager->findOne('members', MemberEntity::getStorageIdName(), $id);
+        $primary_key = MemberEntity::getStorageIdName();
 
-        $member = $this->oneToMember($result);
+        $result = $this->dbManager->queryCustom(
+            "SELECT *
+            FROM members
+            WHERE $primary_key = :member_id",
+            [
+                'member_id' => [$id, PDO::PARAM_INT,],
+            ]
+        );
+
+        $member = $this->oneToMember($result[0]);
 
         return $member;
     }
 
     public function findOneByUsername(string $username): MemberEntity
     {
-        $result = $this->dbManager->findOne('members', 'username', $username);
+        $result = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM members
+            WHERE username = :username',
+            [
+                'username' => [$username, PDO::PARAM_STR,],
+            ]
+        );
 
         if (count($result) === 0) {
             throw new RuntimeException("User $username doe not exist");
         }
 
-        $member = $this->oneToMember($result);
+        $member = $this->oneToMember($result[0]);
 
         return $member;
     }
 
     public function findOneByEmail(string $email): MemberEntity|null
     {
-        $result = $this->dbManager->findOne('members', 'email', $email);
+        $result = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM members
+            WHERE email = :email',
+            [
+                'email' => [$email, PDO::PARAM_STR,],
+            ]
+        );
 
         if (count($result) === 0) {
             return null;
         }
 
-        return $this->oneToMember($result);
+        return $this->oneToMember($result[0]);
     }
 
     public function findAll(): array

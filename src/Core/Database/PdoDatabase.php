@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Database;
 
-use Exception;
 use PDO;
 use RuntimeException;
 
@@ -174,36 +173,5 @@ class PdoDatabase implements StorageInterface
 
         $statement->execute();
         return $statement->fetchAll($this->fetchAllMode);
-    }
-
-    // This function search for One entity in table
-    // that respond to the query-like given
-    public function findOne(string $table, string $column, mixed $value): array
-    {
-        $sql = "SELECT * FROM $table WHERE $column = :value";
-
-        $statement = self::$pdo->prepare("$sql");
-        $statement->execute([
-            ':value' => $value,
-        ]);
-
-        try {
-            $result = $statement->fetch($this->fetchMode);
-        } catch (Exception $e) {
-            throw new RuntimeException("SELECT * FROM $table WHERE $column = '$value' return  : " . $e->getMessage());
-        }
-        if (!$result) {
-            $result = [];
-        }
-        return $result;
-    }
-
-    // We replace camelCase property to snake_case sql column
-    public function camelToSnake(string $camelCase)
-    {
-        $regex = '/(?<=\w)(?=[A-Z])|(?<=[a-z])(?=[0-9])/';
-        $snakeCase = strtolower(preg_replace($regex, '_', $camelCase));
-
-        return $snakeCase;
     }
 }

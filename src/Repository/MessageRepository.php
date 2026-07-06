@@ -79,11 +79,20 @@ class MessageRepository
 
     public function findOneById(int $id): MessageEntity|null
     {
-        $result = $this->dbManager->findOne('messages', MessageEntity::getStorageIdName(), $id);
+        $primary_key = MessageEntity::getStorageIdName();
+
+        $result = $this->dbManager->queryCustom(
+            "SELECT *
+            FROM messages
+            WHERE $primary_key = :message_id",
+            [
+                'message_id' => [$id, PDO::PARAM_INT,],
+            ]
+        );
 
         if ($result !== []) {
-            $message = $this->oneToMessage($result);
-            $message->setId($result['message_id']);
+            $message = $this->oneToMessage($result[0]);
+            $message->setId($result[0]['message_id']);
         } else {
             $message = null;
         }
