@@ -113,7 +113,8 @@ class Settings
         );
         self::$bookController = new BookController(
             self::$bookManager,
-            self::$memberManager
+            self::$memberManager,
+            self::$authentificationService
         );
         self::$memberController = new MemberController(
             self::$bookManager,
@@ -131,6 +132,9 @@ class Settings
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
+
+        require ROOT_DIR . '/config/notification.php';
+        // session_write_close();
     }
 
     // Support multiple configuration files, last one overwite precedent keys
