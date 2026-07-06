@@ -13,9 +13,7 @@ Settings::initialize();
 
 $router = Settings::getRouter();
 
-$router->register('GET', '/', function () {
-    return Settings::getHomeController()->showHomePage();
-});
+$router->register('GET', '/', Settings::getHomeController()->showHomePage(...));
 
 $router->register('GET', '/available-books', function () {
     return Settings::getBookController()->showAvailableBooks();

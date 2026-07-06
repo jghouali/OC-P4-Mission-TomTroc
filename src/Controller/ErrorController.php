@@ -46,7 +46,7 @@ class ErrorController
 
         $errorPageContent = $errorView->render($data, ROOT_DIR . '/templates/debug.php');
 
-        return new Response($errorPageContent, $errorException->getCode());
+        return new Response($errorPageContent, (int) $errorException->getCode());
     }
 
     public function handleException(Exception $exception): Response

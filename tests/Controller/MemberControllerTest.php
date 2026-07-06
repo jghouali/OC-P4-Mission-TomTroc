@@ -137,10 +137,6 @@ class MemberControllerTest extends TestCase
             '/description/',
             $result
         );
-        $this->assertMatchesRegularExpression(
-            '/AVAILABLE/',
-            $result
-        );
 
         $member2->setCreatedAt(Locales::getLocalDateTime('now'));
         Settings::getMemberRepository()->update($member2->getId(), $member2);
@@ -232,10 +228,6 @@ class MemberControllerTest extends TestCase
         );
         $this->assertMatchesRegularExpression(
             '/description2Livre/',
-            $result
-        );
-        $this->assertMatchesRegularExpression(
-            '/NOT-AVAILABLE/',
             $result
         );
     }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Green\TomTroc\Core\Router;
 
+use Closure;
 use Exception;
 use Green\TomTroc\Controller\ErrorController;
 use Green\TomTroc\Core\Http\Request;
 use Green\TomTroc\Core\Http\Response;
+use ReflectionFunction;
 use RuntimeException;
 
 class Router
@@ -32,7 +34,7 @@ class Router
         }
     }
 
-    public function register(string $httpMethod, string $route, callable $function)
+    public function register(string $httpMethod, string $route, Closure $function)
     {
         $allowedMethods = [
             'GET',
@@ -41,18 +43,13 @@ class Router
 
         if (!in_array($httpMethod, $allowedMethods, true)) {
             throw new RuntimeException(
-                "Trying to register an invalid Method : \'$httpMethod\'<br>Allowed method : " .
+                "Trying to register an invalid Http Method : \'$httpMethod\'<br>Allowed method : " .
                     implode(', ', $allowedMethods) . '<br>',
-                500
+                400
             );
         }
 
         $this->routes[$route][$httpMethod] = $function;
-    }
-
-    public function pageNotFoundContent(Request $request): string
-    {
-        return $request->getHttpLocation() . ' not found';
     }
 
     public function resolve(Request $request): Response
@@ -63,7 +60,30 @@ class Router
 
             if (key_exists($location, $this->routes)) {
                 if (key_exists($method, $this->routes[$location])) {
-                    $content = $this->routes[$location][$method]($request->getHttpParameters(true));
+                    $reflexiveFunction = new ReflectionFunction($this->routes[$location][$method]);
+                    $reflexiveParameters = $reflexiveFunction->getParameters();
+
+                    $givenParameters = $request->getHttpParameters(true);
+
+                    $args = [];
+                    foreach ($reflexiveParameters as $parameter) {
+                        $parameterName = $parameter->getName();
+                        if (isset($givenParameters[$parameterName])) {
+                            $args[$parameterName] = $givenParameters[$parameterName];
+                        } else {
+                            if ($parameter->isOptional()) {
+                                continue;
+                            } else {
+                                if ($parameter->isDefaultValueAvailable()) {
+                                    $args[$parameterName] = $parameter->getDefaultValue();
+                                } else {
+                                    throw new RuntimeException("parameter $parameterName is not present", 400);
+                                }
+                            }
+                        }
+                    }
+
+                    $content = $this->routes[$location][$method](...$args);
 
                     if (is_string($content)) {
                         return new Response($content, 200);
@@ -73,7 +93,7 @@ class Router
                     throw new RuntimeException("Method '$method' Not Allowed on route '$location'", 405);
                 }
             } else {
-                throw new RuntimeException("Page '$location' not found", 404);
+                throw new RuntimeException('Page ' . $request->getHttpLocation() . ' not found', 404);
             }
         } catch (Exception $exception) {
             $response = $this->errorController->handleException($exception);

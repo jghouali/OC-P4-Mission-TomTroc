@@ -162,4 +162,20 @@ class BookRepository
 
         return $this->arrayToBook($results);
     }
+
+    public function findAllFilter(string $search): array
+    {
+        $results = $this->dbManager->queryCustom(
+            'SELECT *
+            FROM books
+            WHERE title LIKE :search
+            OR author LIKE :search
+            ORDER BY book_id DESC',
+            [
+                'search' => ["%$search%", PDO::PARAM_STR],
+            ]
+        );
+
+        return $this->arrayToBook($results);
+    }
 }
