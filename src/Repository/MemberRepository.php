@@ -9,7 +9,6 @@ use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
 use PDO;
-use RuntimeException;
 
 class MemberRepository
 {
@@ -104,7 +103,7 @@ class MemberRepository
         return $member;
     }
 
-    public function findOneByUsername(string $username): MemberEntity
+    public function findOneByUsername(string $username): MemberEntity|null
     {
         $result = $this->dbManager->queryCustom(
             'SELECT *
@@ -116,12 +115,10 @@ class MemberRepository
         );
 
         if (count($result) === 0) {
-            throw new RuntimeException("User $username doe not exist");
+            return null;
         }
 
-        $member = $this->oneToMember($result[0]);
-
-        return $member;
+        return $this->oneToMember($result[0]);
     }
 
     public function findOneByEmail(string $email): MemberEntity|null
