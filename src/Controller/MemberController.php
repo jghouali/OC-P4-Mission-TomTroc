@@ -60,6 +60,13 @@ class MemberController
 
     public function register(string $username, string $email, string $password): string
     {
+        if ($this->memberManager->emailAlreadyRegistered($email)) {
+            throw new RuntimeException("$email already registered", 400);
+        };
+        if ($this->memberManager->usernameAlreadyRegistered($username)) {
+            throw new RuntimeException("$username already registered", 400);
+        };
+
         $member = $this->authentificationService->register(
             $username,
             $email,
@@ -67,9 +74,7 @@ class MemberController
             '/upload/avatars/default-avatar.png'
         );
         if ($member::class === 'Green\TomTroc\Entity\MemberEntity') {
-            $registerView = new View('Inscription');
-            $data = [];
-            return $registerView->render($data, TEMPLATE_DIR . '/register.php');
+            return $this->login($email, $password);
         }
         throw new RuntimeException('Error occured while regester this member');
     }
@@ -116,6 +121,13 @@ class MemberController
     ): Response {
         $loggedUser = $this->authentificationService->getCurrentLoggedMember();
         if ($loggedUser !== null) {
+            if ($this->memberManager->emailAlreadyRegistered($email)) {
+                throw new RuntimeException("$email already registered", 400);
+            };
+            if ($this->memberManager->usernameAlreadyRegistered($username)) {
+                throw new RuntimeException("$username already registered", 400);
+            };
+
             if ($email === '') {
                 $email = $loggedUser->getEmail();
             }
