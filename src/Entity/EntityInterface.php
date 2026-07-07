@@ -8,4 +8,5 @@ interface EntityInterface
 {
     public function toArray(): array;
     public static function getStorageIdName(): string;
+    public function getId(): ?int;
 }

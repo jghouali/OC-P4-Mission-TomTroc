@@ -26,6 +26,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                     <p class="font-inter font-normal tracking-normal leading-none text-[14px] text-grey pb-[21px]">Membre depuis <?= $myInformations->getMemberSince() ?></p>
                     <p class="font-inter font-semibold tracking-[0.08em] leading-none text-[8px] text-dark pb-[6px]">BIBLIOTHEQUE</p>
                     <p class="font-inter font-normal tracking-normal leading-none text-[14px] text-dark"><img src="/images/icon-books.png" alt="icône nombre de livre" class="inline-block"> <?= $myInformations->securePrintText($myInformations->getBookCount()) ?></p>
+                    <p id="modifyAvatar" class="text-[#A6A6A6] underline pb-[48px] cursor-pointer"><a href="book-add">ajouter un livre</a></p>
                 </div>
             </div>
 

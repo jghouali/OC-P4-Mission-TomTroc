@@ -2,3 +2,4 @@
 .php-cs-fixer.cache
 .phpunit.result.cache
 /tailwindcss-linux-x64
+/public/upload

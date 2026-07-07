@@ -20,6 +20,8 @@ $router->register('GET', '/book-detail', Settings::getBookController()->showBook
 $router->register('GET', '/book-edit', Settings::getBookController()->showBookEdit(...));
 $router->register('POST', '/book-edit', Settings::getBookController()->bookUpdate(...));
 $router->register('GET', '/book-delete', Settings::getBookController()->bookDelete(...));
+$router->register('GET', '/book-add', Settings::getBookController()->showBookAdd(...));
+$router->register('POST', '/book-add', Settings::getBookController()->bookAdd(...));
 
 $router->register('GET', '/login', Settings::getMemberController()->showLogin(...));
 $router->register('GET', '/logout', Settings::getMemberController()->logout(...));

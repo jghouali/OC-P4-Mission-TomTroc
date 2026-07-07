@@ -89,6 +89,7 @@ class AuthentificationService
         unset($_SESSION['id']);
         unset($_SESSION['avatarPath']);
         unset($_SESSION['username']);
+        session_destroy();
         return true;
     }
 }
