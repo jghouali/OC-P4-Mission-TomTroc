@@ -9,7 +9,7 @@ use Green\TomTroc\Core\Service\ValidatorService;
 use Green\TomTroc\Enum\MessageStatusEnum;
 use Green\TomTroc\Enum\ValidatorEnum;
 
-class MessageEntity extends AbstractEntity implements EntityInterface
+class MessageEntity extends AbstractEntity
 {
     protected string $content;
     protected DateTime $sentAt;
