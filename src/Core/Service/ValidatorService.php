@@ -162,6 +162,9 @@ class ValidatorService
     public static function uploadFile(array $fileArray, string $uploadDir): string|false
     {
         $uploadDir = '/upload/' .  $uploadDir . '/';
+        if (isset($fileArray) && $fileArray['error'] === 4) {
+            throw new RuntimeException('No Image provided', 400);
+        }
         if (isset($fileArray) && $fileArray['error'] === 0) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             $mimeType = finfo_file($finfo, $fileArray['tmp_name']);

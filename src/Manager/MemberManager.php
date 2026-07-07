@@ -48,12 +48,20 @@ class MemberManager
         }
     }
 
-    public function memberExist(string $email): bool
+    public function emailAlreadyRegistered(string $email): bool
     {
-        return (
-            $this->memberRepository
-                ->findOneByEmail($email)::class === 'Green\TomTroc\Entity\MemberEntity'
-        );
+        if ($this->memberRepository->findOneByEmail($email) === null) {
+            return false;
+        }
+        return true;
+    }
+
+    public function usernameAlreadyRegistered(string $username): bool
+    {
+        if ($this->memberRepository->findOneByUsername($username) === null) {
+            return false;
+        }
+        return true;
     }
 
     public function memberExistAndValidated(string $email): bool

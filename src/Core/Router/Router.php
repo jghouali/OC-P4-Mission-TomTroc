@@ -68,7 +68,7 @@ class Router
                     $args = [];
                     foreach ($reflexiveParameters as $parameter) {
                         $parameterName = $parameter->getName();
-                        if (isset($givenParameters[$parameterName])) {
+                        if (isset($givenParameters[$parameterName]) && $givenParameters[$parameterName] !== '') {
                             $args[$parameterName] = $givenParameters[$parameterName];
                         } else {
                             if ($parameter->isOptional()) {

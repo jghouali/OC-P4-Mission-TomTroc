@@ -28,6 +28,7 @@ $router->register('GET', '/logout', Settings::getMemberController()->logout(...)
 $router->register('POST', '/login', Settings::getMemberController()->login(...));
 
 $router->register('GET', '/register', Settings::getMemberController()->showRegister(...));
+$router->register('POST', '/register', Settings::getMemberController()->register(...));
 $router->register('GET', '/my-profile', Settings::getMemberController()->showMyProfile(...));
 $router->register('POST', '/my-profile', Settings::getMemberController()->modifyMyProfile(...));
 $router->register('GET', '/profile', Settings::getMemberController()->showProfile(...));

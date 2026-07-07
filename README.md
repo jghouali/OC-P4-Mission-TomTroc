@@ -474,6 +474,7 @@ tomtroc/
 │   ├── available-books.php
 │   ├── book-detail.php
 │   ├── book-edit.php
+│   ├── book-add.php
 │   ├── debug.php
 │   ├── error.php
 │   ├── footer.template.php
@@ -1191,14 +1192,14 @@ Responsibilities:
 Methods:
 
 ```php
-addBook(string $title, string $author, string $imagePath, string $description, BookStatusEnum $availability): BookEntity|false
-getMyLibrary(): array
-listBooks(?string $search = ''): array|bool
-listAvailableBook(): array|bool
-listLastBook(int $count): array|bool
-getBookDetail(BookEntity|int $book): BookEntity|false
-updateBook(BookEntity $book): BookEntity|false
-deleteBook(BookEntity $book): bool
+public function addBook(string $title, string $author, string $imagePath, string $description, BookStatusEnum $availability): BookEntity|false
+public function getMyLibrary(): array
+public function listBooks(?string $search = ''): array|bool
+public function listAvailableBook(): array|bool
+public function listLastBook(int $count): array|bool
+public function getBookDetail(BookEntity|int $book): BookEntity|false
+public function updateBook(BookEntity $book): BookEntity|false
+public function deleteBook(BookEntity $book): bool
 ```
 
 #### `MemberManager`
@@ -1215,11 +1216,12 @@ Responsibilities:
 Methods:
 
 ```php
-modifyMyProfile(string $username, string $email, string $password, string $avatarPath): MemberEntity|false
-memberExist(string $email): bool
-memberExistAndValidated(string $email): bool
-getProfileData(int $id): ProfileEntity|false
-getMyProfileData(): array
+public function modifyMyProfile(string $username, string $email, string $password, string $avatarPath): MemberEntity|false
+public function emailAlreadyRegistered(string $email): bool
+public function usernameAlreadyRegistered(string $email): bool
+public function memberExistAndValidated(string $email): bool
+public function getProfileData(int $id): ProfileEntity|false
+public function getMyProfileData(): array
 ```
 
 #### `MessageManager`
@@ -1236,10 +1238,10 @@ Responsibilities:
 Methods:
 
 ```php
-sendMessage(MemberEntity $from, MemberEntity $to, string $content): int|false
-myMessageBox(): array
-getNotificationCount(): int
-setReadtoAllMessageByUser(MemberEntity|int $fromMember): bool
+public function sendMessage(MemberEntity $from, MemberEntity $to, string $content): int|false
+public function myMessageBox(): array
+public function getNotificationCount(): int
+public function setReadtoAllMessageByUser(MemberEntity|int $fromMember): bool
 ```
 
 ---

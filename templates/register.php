@@ -27,12 +27,12 @@
                 <h1 class="font-playfair font-normal tracking-normal leading-[1.3] text-[30px] sm:text-[36px] text-black pb-[56px]">Inscription</h1>
 
                 <form action="/register" method="post" class="flex flex-col w-full">
-                    <label for="login-username" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Pseudo</label>
-                    <input type="text" name="username" id="login-username" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
-                    <label for="login-email" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Adresse email</label>
-                    <input type="text" name="email" id="login-email" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
-                    <label for="login-password" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Mot de passe</label>
-                    <input type="password" name="password" id="login-password" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
+                    <label for="register-username" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Pseudo</label>
+                    <input type="text" name="username" id="register-username" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
+                    <label for="register-email" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Adresse email</label>
+                    <input type="text" name="email" id="register-email" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
+                    <label for="register-password" class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Mot de passe</label>
+                    <input type="password" name="password" id="register-password" class="sm:w-[322px] h-[50px] mb-[32px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0]">
                     <button class="sm:w-[322px] h-[63px] font-inter font-semibold leading-none tracking-normal text-[16px] text-center text-white bg-primary duration-300 ease-in-out hover:bg-primary-hover rounded-[10px]">S’inscrire</button>
                     <p class="sm:w-[322px] font-inter font-normal tracking-normal text-[14px] text-dark mt-[40px] pb-[100px]">Déja inscrit ? <a href="/login" class="underline">Connectez-vous</a></p>
                 </form>
