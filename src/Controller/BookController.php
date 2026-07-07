@@ -89,6 +89,108 @@ class BookController
         throw new RuntimeException('Not Logged', 400);
     }
 
+    public function showBookAdd()
+    {
+        $loggedUser = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedUser !== null) {
+            $addBooksView = new View('Add book');
+            $data = [
+                'member' => $loggedUser,
+            ];
+
+            return $addBooksView->render($data, TEMPLATE_DIR . '/book-add.php');
+        }
+        throw new RuntimeException('Not Logged', 400);
+    }
+
+    public function bookAdd(
+        string $availability,
+        ?string $title = '',
+        ?string $author = '',
+        ?string $description = '',
+        mixed $imagePath = []
+    ) {
+        $loggedUser = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedUser !== null) {
+            $error = [
+                'title' => false,
+                'author' => false,
+                'description' => false,
+                'imagePath' => false,
+            ];
+
+            if (
+                !ValidatorService::validateField(
+                    'title',
+                    $title,
+                    ValidatorEnum::textContent150,
+                )
+            ) {
+                $error['title'] = true;
+            }
+
+            if (
+                !ValidatorService::validateField(
+                    'author',
+                    $author,
+                    ValidatorEnum::textContent150,
+                )
+            ) {
+                $error['author'] = true;
+            }
+
+            if (
+                !ValidatorService::validateField(
+                    'description',
+                    $description,
+                    ValidatorEnum::textContent2000
+                )
+            ) {
+                $error['description'] = true;
+            }
+
+            if (is_array($imagePath)) {
+                $imagePath = ValidatorService::validateField(
+                    'imagePath',
+                    $imagePath,
+                    ValidatorEnum::uploadFile
+                );
+                if (!is_string($imagePath)) {
+                    $error['imagePath'] = true;
+                }
+            } else {
+                throw new RuntimeException('Unknow image type');
+            }
+
+            if (in_array(true, $error, true)) {
+                $errorArray = [];
+                foreach ($error as $field => $isError) {
+                    if ($isError) {
+                        $errorArray[$field] = $isError;
+                    }
+                }
+
+                $errorMessage = 'There is error on field : ' . implode('\', \'');
+                throw new RuntimeException($errorMessage, 400);
+            }
+
+            $book = $this->bookManager->addBook(
+                $title,
+                $author,
+                $imagePath,
+                $description,
+                BookStatusEnum::tryFrom($availability)
+            );
+
+            if (!$book::class === 'Green\TomTroc\Entity\BookEntity') {
+                throw new RuntimeException('Cant add the book', 500);
+            };
+
+            return new Response('OK', 303, ['Location:' => '/book-detail?bookId=' . $book->getId()]);
+        }
+        throw new RuntimeException('Not Logged', 400);
+    }
+
     public function bookUpdate(
         string $bookId,
         string $availability,

@@ -9,7 +9,7 @@ use Green\TomTroc\Core\Service\ValidatorService;
 use Green\TomTroc\Enum\MemberStatusEnum;
 use Green\TomTroc\Enum\ValidatorEnum;
 
-class MemberEntity extends AbstractEntity implements EntityInterface
+class MemberEntity extends AbstractEntity
 {
     private string $username;
     private string $email;
