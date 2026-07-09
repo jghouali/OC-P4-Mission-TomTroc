@@ -52,7 +52,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                                         <p class="font-inter font-normal tracking-normal leading-none text-[12px] text-dark"><?= $profile->securePrintText($book->getAuthor()) ?></p>
                                     </td>
                                     <td>
-                                        <p class="font-inter font-normal italic tracking-normal leading-none text-[12px] text-dark w-[128px] h-[62px]"><?= $profile->securePrintText(mb_strimwidth($book->getDescription(), 0, 85, '...')) ?></p>
+                                        <p class="font-inter font-normal italic tracking-normal leading-none text-[12px] text-dark w-[128px] h-[62px]"><?= $profile->securePrintText($book->getDescription(), 85) ?></p>
                                     </td>
                                 </tr>
                             <?php endforeach ?>
@@ -72,7 +72,7 @@ use Green\TomTroc\Entity\ProfileEntity;
         <div class="flex sm:hidden flex-col flex-wrap content-center gap-[15px]">
             <?php foreach ($profile->getBooks() as $book): ?>
                 <div class="flex flex-col content-center items-center justify-center gap-[21px] w-[333px] h-[251px] bg-white border-[1px] border-light-grey2 rounded-[20px] ">
-                    <a href="/book-detail?id=<?= $book->getId() ?>">
+                    <a href="/book-detail?bookId=<?= $book->getId() ?>">
                         <div class="flex flex-row justify-center ">
                             <div class="size-[79px]">
                                 <img src="<?= $profile->securePrintText($book->getImagePath()) ?>" alt="Couverture du livre <?= $profile->securePrintText($book->getTitle()) ?>" class="size-[79px] object-cover">
@@ -83,7 +83,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                                 <p class="font-inter font-normal leading-none tracking-normal text-[14px] text-dark"><?= $profile->securePrintText($book->getAuthor()) ?></p>
                             </div>
                         </div>
-                        <p class="pt-[21px] font-inter font-normal italic tracking-normal leading-none text-[14px] text-dark w-[220px] h-[62px]"><?= mb_strimwidth($profile->securePrintText($book->getDescription()), 0, 97, '...') ?></p>
+                        <p class="pt-[21px] font-inter font-normal italic tracking-normal leading-none text-[14px] text-dark w-[220px] h-[62px]"><?= $profile->securePrintText($book->getDescription(), 97) ?></p>
                     </a>
                 </div>
             <?php endforeach ?>

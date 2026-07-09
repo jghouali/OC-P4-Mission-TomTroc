@@ -73,6 +73,29 @@ class ValidatorService
                 $message = $propertyName . ' is not a valid bcrypt hash';
                 break;
 
+            case 'clearPassword':
+                // Must contain at least 1 [a-z]
+                // Must contain at least 1 [A-Z]
+                // Must contain at least 1 [0-9]
+                // Must contain at least 1 [!@#$%^&*()_\-+=.?]
+                // min 12 max 72
+                $validated = filter_var(
+                    $field,
+                    FILTER_VALIDATE_REGEXP,
+                    [
+                        'options' =>
+                        [
+                            'regexp' =>
+                            '/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_\-+=.?])' .
+                                '[a-zA-Z0-9!@#$%^&*()_\-+=.?]{12,72}$/',
+                        ],
+                    ]
+                );
+                $message = $propertyName .
+                    ' must contain between 12 and 72 character and at least one [a-z],' .
+                    ' one [0-9], one [!@#$%^&*()_\-+=.?]';
+                break;
+
             case 'imagePath':
                 // must be in /upload/avatars/ with 1 to 50 a-zA-Z0-9 chars and .png extension
                 if ($propertyName === 'imagePath') {
@@ -215,7 +238,8 @@ class ValidatorService
             if (!is_dir(ROOT_DIR . '/public' . $uploadDir)) {
                 mkdir(ROOT_DIR . '/public' . $uploadDir, 0755, true);
             }
-            if (!move_uploaded_file($fileArray['tmp_name'], ROOT_DIR . '/public' . $destination)) {
+            $mvFile = ROOT_DIR . '/public' . $destination;
+            if (!move_uploaded_file($fileArray['tmp_name'], $mvFile)) {
                 throw new RuntimeException('cant save image', 500);
             }
 

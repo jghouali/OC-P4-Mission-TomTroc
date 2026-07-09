@@ -78,12 +78,7 @@ class MessageController
 
             return $availableBooksView->render($data, TEMPLATE_DIR . '/message-box.php');
         } else {
-            $errorMessage = 'Not Logged';
-            $errorView = new View('Not Logged');
-            $data = [
-                'errorMessage' => $errorMessage,
-            ];
-            return $errorView->render($data, TEMPLATE_DIR . '/error.php');
+            throw new RuntimeException('Not Logged', 400);
         }
     }
 

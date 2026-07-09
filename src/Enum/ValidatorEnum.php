@@ -7,6 +7,7 @@ namespace Green\TomTroc\Enum;
 enum ValidatorEnum: string
 {
     case bcryptHash = 'bcryptHash';
+    case clearPassword = 'clearPassword';
     case uploadFile = 'uploadFile';
     case imagePath = 'imagePath';
     case email = 'email';

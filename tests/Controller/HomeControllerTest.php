@@ -53,10 +53,10 @@ class HomeControllerTest extends TestCase
         Settings::getAuthentificationService()->register(
             'Jeremy',
             'jeremy@mail.com',
-            'password',
+            'P@ssword2026',
             '/upload/avatars/image.png'
         );
-        Settings::getAuthentificationService()->login('jeremy@mail.com', 'password');
+        Settings::getAuthentificationService()->login('jeremy@mail.com', 'P@ssword2026');
         Settings::getBookManager()->addBook(
             'Titredulivre',
             'unauteur',

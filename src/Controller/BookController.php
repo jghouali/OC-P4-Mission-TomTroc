@@ -119,6 +119,10 @@ class BookController
                 'imagePath' => false,
             ];
 
+            if ($imagePath['error'] === 4) {
+                $imagePath = '/upload/books/default-book.png';
+            }
+
             if (
                 !ValidatorService::validateField(
                     'title',
@@ -158,6 +162,12 @@ class BookController
                 if (!is_string($imagePath)) {
                     $error['imagePath'] = true;
                 }
+            } elseif (is_string($imagePath)) {
+                $imagePath = ValidatorService::validateField(
+                    'imagePath',
+                    $imagePath,
+                    ValidatorEnum::imagePath
+                );
             } else {
                 throw new RuntimeException('Unknow image type');
             }

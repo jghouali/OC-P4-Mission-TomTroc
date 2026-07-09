@@ -45,7 +45,7 @@ class MemberEntityTest extends TestCase
         return new MemberEntity(
             'John Doe',
             'john.doe@mail.com',
-            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            password_hash('P@ssword2026', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
             '/upload/avatars/avatar.png',
             self::$date,
             self::$date,
@@ -58,7 +58,7 @@ class MemberEntityTest extends TestCase
     {
         // GIVEN
         // Have this information about a member :
-        // 'John Doe', 'john.goe@mail.com', 'password', '/upload/avatars/avatar.png',
+        // 'John Doe', 'john.goe@mail.com', 'P@ssword2026', '/upload/avatars/avatar.png',
         // self::$date, self::$date, 0, MemberStatusEnum::VALIDATED
 
         // WHEN
@@ -66,7 +66,7 @@ class MemberEntityTest extends TestCase
         $member = new MemberEntity(
             'John Doe',
             'john.goe@mail.com',
-            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            password_hash('P@ssword2026', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
             '/upload/avatars/avatar.png',
             self::$date,
             self::$date,
@@ -82,7 +82,7 @@ class MemberEntityTest extends TestCase
         // can getEmail()
         $this->assertSame('john.goe@mail.com', $member->getEmail());
         // can getPasswordHash()
-        $this->assertTrue(password_verify('password', $member->getPasswordHash()));
+        $this->assertTrue(password_verify('P@ssword2026', $member->getPasswordHash()));
         // can getAvatarPath()
         $this->assertSame('/upload/avatars/avatar.png', $member->getAvatarPath());
         // can getCreatedAt()
@@ -104,7 +104,7 @@ class MemberEntityTest extends TestCase
         // Getters will show $this->validMember informations
         $this->assertSame('John Doe', $this->validMember->getUserName());
         $this->assertSame('john.doe@mail.com', $this->validMember->getEmail());
-        $this->assertTrue(password_verify('password', $this->validMember->getPasswordHash()));
+        $this->assertTrue(password_verify('P@ssword2026', $this->validMember->getPasswordHash()));
         $this->assertSame('/upload/avatars/avatar.png', $this->validMember->getAvatarPath());
         $this->assertSame(self::$dateFormatted, $this->validMember->getCreatedAt());
         $this->assertSame(self::$dateFormatted, $this->validMember->getUpdatedAt());
@@ -122,7 +122,7 @@ class MemberEntityTest extends TestCase
         $this->validMember->setUserName('John Doedoe');
         $this->validMember->setEmail('john.doedoe@mail.com');
         $this->validMember->setPasswordHash(
-            password_hash('newpassword', Settings::get(Settings::APP_SECURITY_HASH_ALGO))
+            password_hash('newP@ssword2026', Settings::get(Settings::APP_SECURITY_HASH_ALGO))
         );
         $this->validMember->setAvatarPath('/upload/avatars/newavatar.png');
         $this->validMember->setCreatedAt(self::$date);
@@ -134,7 +134,7 @@ class MemberEntityTest extends TestCase
         // Getters will show the same informations
         $this->assertSame('John Doedoe', $this->validMember->getUserName());
         $this->assertSame('john.doedoe@mail.com', $this->validMember->getEmail());
-        $this->assertTrue(password_verify('newpassword', $this->validMember->getPasswordHash()));
+        $this->assertTrue(password_verify('newP@ssword2026', $this->validMember->getPasswordHash()));
         $this->assertSame('/upload/avatars/newavatar.png', $this->validMember->getAvatarPath());
         $this->assertSame(self::$dateFormatted, $this->validMember->getCreatedAt());
         $this->assertSame(self::$dateFormatted, $this->validMember->getUpdatedAt());
@@ -147,7 +147,7 @@ class MemberEntityTest extends TestCase
     {
         // GIVEN
         // Have this information about a member :
-        // 'John Doe', 'john.goe@mail.com', 'password', '/upload/avatars/avatar.png',
+        // 'John Doe', 'john.goe@mail.com', 'P@ssword2026', '/upload/avatars/avatar.png',
         // self::$date, self::$date, 0, MemberStatusEnum::VALIDATED
 
         // EXPECT
@@ -159,7 +159,7 @@ class MemberEntityTest extends TestCase
         $member = new MemberEntity(
             'JohnDoe',
             'john.goe@mail.com',
-            password_hash('password', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
+            password_hash('P@ssword2026', Settings::get(Settings::APP_SECURITY_HASH_ALGO)),
             '/../../../etc/shadow',
             self::$date,
             self::$date,

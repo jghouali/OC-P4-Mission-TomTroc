@@ -43,8 +43,23 @@ abstract class AbstractEntity implements EntityInterface
         );
     }
 
-    public function securePrintText(string $string): string
+    public function securePrintText(string $string, ?int $trimNumber = 0): string
     {
-        return nl2br(htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        if ($trimNumber === 0) {
+            return nl2br(
+                htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                false
+            );
+        } elseif ($trimNumber >= 1) {
+            return nl2br(
+                htmlspecialchars(
+                    mb_strimwidth($string, 0, $trimNumber, '...'),
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ),
+                false
+            );
+        }
+        throw new RuntimeException('trimNumber must be positive', 400);
     }
 }
