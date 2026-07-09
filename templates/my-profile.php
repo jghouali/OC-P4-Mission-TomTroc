@@ -20,13 +20,13 @@ use Green\TomTroc\Entity\ProfileEntity;
                     <div class="size-[135px] rounded-full overflow-hidden">
                         <img src="<?= $myInformations->securePrintText($myInformations->getAvatarPath()) ?>" alt="Avatar de l'utilisateur <?= $myInformations->securePrintText($myInformations->getUsername()) ?>" class="object-cover size-[135px]">
                     </div>
-                    <p id="modifyAvatar" class="text-[#A6A6A6] underline pb-[48px] cursor-pointer">modifier</p>
+                    <p id="modifyAvatar" class="text-grey underline pb-[48px] cursor-pointer">modifier</p>
                     <img src="/images/Line-242.png" alt="une ligne de démarcation" class="pb-[48px]">
                     <p class="font-playfair font-normal tracking-normal leading-none text-[24px] text-dark pb-[11px]"><?= $myInformations->securePrintText($myInformations->getUsername()) ?></p>
                     <p class="font-inter font-normal tracking-normal leading-none text-[14px] text-grey pb-[21px]">Membre depuis <?= $myInformations->getMemberSince() ?></p>
                     <p class="font-inter font-semibold tracking-[0.08em] leading-none text-[8px] text-dark pb-[6px]">BIBLIOTHEQUE</p>
                     <p class="font-inter font-normal tracking-normal leading-none text-[14px] text-dark"><img src="/images/icon-books.png" alt="icône nombre de livre" class="inline-block"> <?= $myInformations->securePrintText($myInformations->getBookCount()) ?></p>
-                    <p id="modifyAvatar" class="text-[#A6A6A6] underline pb-[48px] cursor-pointer"><a href="book-add">ajouter un livre</a></p>
+                    <p id="addBook" class="text-grey underline pb-[48px] cursor-pointer"><a href="book-add">ajouter un livre</a></p>
                 </div>
             </div>
 
@@ -34,12 +34,13 @@ use Green\TomTroc\Entity\ProfileEntity;
                 <div>
                     <p class="pb-[22px] sm:pb-[26px] font-inter font-normal leading-none tracking-normal text-[16px] text-dark">Vos informations personnelles</p>
                     <form action="/my-profile" method="POST" enctype="multipart/form-data" class="flex flex-col">
+                        <label for="profil-avatarPath" class="sr-only">Téléverser un avatar</label>
                         <input
                             type="file"
                             id="profil-avatarPath"
                             name="avatarPath"
                             accept=".png, image/png"
-                            class="hidden" />
+                            class="hidden">
 
                         <label for="profil-email" class="pb-[10px] font-inter font-normal leading-none tracking-normal text-[14px] text-grey">Addresse email</label>
                         <input type="text" name="email" id="profil-email" placeholder="<?= $myInformations->securePrintText($myInformations->getEmail()) ?>" class="bg-greyblue rounded-[6px] border-light-grey focus:border-light-grey border w-[269px] sm:w-[200px] lg:w-[322px] h-[50px] placeholder:font-inter placeholder:text-[14px] placeholder:text-dark px-[14px] outline-none focus:outline-none text-dark">
@@ -47,7 +48,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                         <input type="password" name="password" id="profil-password" placeholder="•••••••••" class="bg-greyblue rounded-[6px] border-light-grey focus:border-light-grey border w-[269px] sm:w-[200px] lg:w-[322px] h-[50px] placeholder:font-inter placeholder:text-[14px] placeholder:text-dark px-[14px] outline-none focus:outline-none text-dark">
                         <label for="profil-username" class="pt-[32px] pb-[10px] font-inter font-normal leading-none tracking-normal text-[14px] text-grey">Pseudo</label>
                         <input type="text" name="username" id="profil-username" placeholder="<?= $myInformations->securePrintText($myInformations->getUsername()) ?>" class="bg-greyblue rounded-[6px] border-light-grey focus:border-light-grey border w-[269px] sm:w-[200px] lg:w-[322px] h-[50px] placeholder:font-inter placeholder:text-[14px] placeholder:text-dark px-[14px] outline-none focus:outline-none text-dark">
-                        <button class="mt-[32px] mb-[48px] sm:mb-[37px] w-[269px] sm:w-[150px] h-[63px] bg-[#F5F3EF] border-[#00AC66] border-[1px] text-[#00AC66] rounded-[10px]">Enregistrer</button>
+                        <button class="mt-[32px] mb-[48px] sm:mb-[37px] w-[269px] sm:w-[150px] h-[63px] bg-[#F5F3EF] border-primary border-[1px] text-primary rounded-[10px]">Enregistrer</button>
                     </form>
                 </div>
             </div>
@@ -78,7 +79,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                                     <p class="font-inter font-normal tracking-normal leading-none text-[12px] text-dark"><?= $myInformations->securePrintText($book->getAuthor()) ?></p>
                                 </td>
                                 <td>
-                                    <p class="font-inter font-normal italic tracking-normal leading-none text-[12px] text-dark w-[128px] h-[62px]"><?= $myInformations->securePrintText(mb_strimwidth($book->getDescription(), 0, 85, '...')) ?></p>
+                                    <p class="font-inter font-normal italic tracking-normal leading-none text-[12px] text-dark w-[128px] h-[62px]"><?= $myInformations->securePrintText($book->getDescription(), 85) ?></p>
                                 </td>
                                 <td>
                                     <div class="font-inter font-medium leading-none tracking-normal text-[8px] text-center text-white w-[71px] h-[18px] pt-[5px] px-[13px] rounded-[30px] <?= ($book->getAvailability()->value === 'AVAILABLE') ? 'bg-greendispo' : 'bg-red' ?>"><?= ($book->getAvailability()->value === 'AVAILABLE') ? 'disponible' : 'non dispo.' ?></div>
@@ -132,7 +133,7 @@ use Green\TomTroc\Entity\ProfileEntity;
                                 <div class="font-inter font-medium leading-none tracking-normal text-[8px] text-center text-white w-[71px] h-[18px] pt-[5px] px-[13px] rounded-[30px] <?= ($book->getAvailability()->value === 'AVAILABLE') ? 'bg-greendispo' : 'bg-red' ?>"><?= ($book->getAvailability()->value === 'AVAILABLE') ? 'disponible' : 'non dispo.' ?></div>
                             </div>
                         </div>
-                        <p class="pt-[21px] font-inter font-normal italic tracking-normal leading-none text-[14px] text-dark w-[220px] h-[62px]"><?= mb_strimwidth($myInformations->securePrintText($book->getDescription()), 0, 97, '...') ?></p>
+                        <p class="pt-[21px] font-inter font-normal italic tracking-normal leading-none text-[14px] text-dark w-[220px] h-[62px]"><?= $myInformations->securePrintText($book->getDescription(), 97) ?></p>
                     </a>
                     <div>
                         <p class="pt-[43px] font-inter font-normal tracking-normal leading-none text-[16px] text-dark">

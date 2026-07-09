@@ -27,12 +27,13 @@ use Green\TomTroc\Entity\MemberEntity;
                 <div class="">
                     <form action="/book-add" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
                         <input type="hidden" name="memberId" value="<?= $member->getId() ?>">
+                        <label for="book-add-imagePath" class="sr-only">Téléverser une image</label>
                         <input
                             type="file"
                             id="book-add-imagePath"
                             name="imagePath"
                             accept=".png, image/png"
-                            class="hidden" />
+                            class="hidden">
 
                         <label for="book-add-title" class="w-[335px] sm:w-[435px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Titre</label>
                         <input type="text" name="title" id="book-add-title" class="w-[335px] sm:w-[435px] h-[50px] mb-[32px] bg-greyblue rounded-[6px] border border-[#F0F0F0] text-dark text-[14px] p-[14px]" value="">

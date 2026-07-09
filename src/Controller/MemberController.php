@@ -47,23 +47,28 @@ class MemberController
             $password
         );
         if ($logged) {
-            return $this->showMyProfile();
+            return new Response('Success', 303, ['Location:' => '/my-profile']);
         }
         return $this->showLogin(true);
     }
 
     public function logout(): Response
     {
-        $notLogged = $this->authentificationService->logout();
-        return new Response('Succes', 303, ['Location:' => '/']);
+        $loggedUser = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedUser === null) {
+            return new Response('Not Logged', 302, ['Location:' => '/login']);
+        }
+        $this->authentificationService->logout();
+
+        return new Response('Success', 303, ['Location:' => '/']);
     }
 
-    public function register(string $username, string $email, string $password): string
+    public function register(string $username, string $email, string $password): Response
     {
-        if ($this->memberManager->emailAlreadyRegistered($email)) {
+        if ($this->authentificationService->emailAlreadyRegistered($email)) {
             throw new RuntimeException("$email already registered", 400);
         };
-        if ($this->memberManager->usernameAlreadyRegistered($username)) {
+        if ($this->authentificationService->usernameAlreadyRegistered($username)) {
             throw new RuntimeException("$username already registered", 400);
         };
 
@@ -121,10 +126,10 @@ class MemberController
     ): Response {
         $loggedUser = $this->authentificationService->getCurrentLoggedMember();
         if ($loggedUser !== null) {
-            if ($this->memberManager->emailAlreadyRegistered($email)) {
+            if ($this->authentificationService->emailAlreadyRegistered($email)) {
                 throw new RuntimeException("$email already registered", 400);
             };
-            if ($this->memberManager->usernameAlreadyRegistered($username)) {
+            if ($this->authentificationService->usernameAlreadyRegistered($username)) {
                 throw new RuntimeException("$username already registered", 400);
             };
 

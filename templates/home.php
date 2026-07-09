@@ -22,7 +22,6 @@
                 <img class="w-full sm:w-[404px]" src="/images/hamza-nouasria.jpg" alt="Personne lisant un livre devant une librairie remplie de piles de livres.">
                 <p class="font-inter italic font-normal leading-none tracking-normal text-[12px] text-grey text-right pt-[5px] sm:pt-[12px] pr-[26px] sm:pr-[3px]"><em>Hamza</em></p>
             </div>
-
         </div>
     </section>
 

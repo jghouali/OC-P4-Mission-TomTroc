@@ -83,24 +83,42 @@ class BookManager
         } else {
             $bookId = $book->getId();
         }
-        return $this->bookRepository->findOneById($bookId);
+        $result = $this->bookRepository->findOneById($bookId);
+        if ($result === null) {
+            return false;
+        }
+        return $result;
     }
 
     public function updateBook(BookEntity $book): BookEntity|false
     {
-        $bookId = $book->getId();
-        if (is_int($bookId)) {
-            return $this->bookRepository->update($bookId, $book);
+        $loggedMember = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedMember === null) {
+            throw new RuntimeException('You are not logged in');
+        } elseif ($loggedMember::class === 'Green\TomTroc\Entity\MemberEntity') {
+            $bookId = $book->getId();
+            if (is_int($bookId)) {
+                return $this->bookRepository->update($bookId, $book);
+            }
+            return false;
+        } else {
+            throw new RuntimeException('Unknown Error', 500);
         }
-        return false;
     }
 
     public function deleteBook(BookEntity $book): bool
     {
-        $bookId = $book->getId();
-        if (is_int($bookId)) {
-            return $this->bookRepository->delete($book);
+        $loggedMember = $this->authentificationService->getCurrentLoggedMember();
+        if ($loggedMember === null) {
+            throw new RuntimeException('You are not logged in');
+        } elseif ($loggedMember::class === 'Green\TomTroc\Entity\MemberEntity') {
+            $bookId = $book->getId();
+            if (is_int($bookId)) {
+                return $this->bookRepository->delete($book);
+            }
+            return false;
+        } else {
+            throw new RuntimeException('Unknown Error', 500);
         }
-        return false;
     }
 }
