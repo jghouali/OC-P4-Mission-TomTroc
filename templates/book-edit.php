@@ -27,12 +27,13 @@ use Green\TomTroc\Entity\BookEntity;
                 <div class="">
                     <form action="/book-edit" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
                         <input type="hidden" name="bookId" value="<?= $book->getId() ?>">
+                        <label for="book-edit-imagePath" class="sr-only">Téléverser une image</label>
                         <input
                             type="file"
                             id="book-edit-imagePath"
                             name="imagePath"
                             accept=".png, image/png"
-                            class="hidden" />
+                            class="hidden">
 
                         <label for="book-edit-title" class="w-[335px] sm:w-[435px] font-inter font-normal tracking-normal text-[14px] text-grey pb-[10px]">Titre</label>
                         <input type="text" name="title" id="book-edit-title" class="w-[335px] sm:w-[435px] h-[50px] mb-[32px] bg-greyblue rounded-[6px] border border-[#F0F0F0] text-dark text-[14px] p-[14px]" value="<?= $book->securePrintText($book->getTitle()) ?>">

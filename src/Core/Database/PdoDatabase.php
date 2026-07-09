@@ -75,25 +75,33 @@ class PdoDatabase implements StorageInterface
 
         $statement = self::$pdo->prepare("$sql");
 
-        if ($statement->execute($params)) {
+        $statement->execute($params);
+        $rowAffected = $statement->rowCount();
+
+        if ($rowAffected === 1) {
             return (int) self::$pdo->lastInsertId();
+        } elseif ($rowAffected > 1) {
+            throw new RuntimeException('More than 1 affected rows', 500);
         }
         return false;
     }
 
     // This function get the entity to update as an array,
     // unpack and update it in db
-    public function update(string $entity, int $id, array $data): bool
+    public function update(string $entity, int $id, array $data): int
     {
         $setArray = [];
         $params = [];
 
+        $primary = substr($entity, 0, strlen($entity) - 1) . '_id';
+
         foreach ($data as $column => $value) {
+            if ($column === $primary) {
+                continue;
+            }
             $setArray[] = "$column = :$column";
             $params[":$column"] = $value;
         }
-
-        $primary = substr($entity, 0, strlen($entity) - 1) . '_id';
         $setString = implode(', ', $setArray);
 
         $sql = "UPDATE $entity SET $setString WHERE $primary = :primary_id";
@@ -101,12 +109,14 @@ class PdoDatabase implements StorageInterface
         $params[':primary_id'] = $id;
 
         $statement = self::$pdo->prepare($sql);
-        return $statement->execute($params);
+        $statement->execute($params);
+
+        return $statement->rowCount();
     }
 
     // This function get the entity to delete as an array,
     // unpack and delete it in db
-    public function delete(string $entity, array $data): bool
+    public function delete(string $entity, array $data): int
     {
         $whereArray = [];
         $params = [];
@@ -115,14 +125,14 @@ class PdoDatabase implements StorageInterface
             $whereArray[] = "$column = :$column";
             $params[":$column"] = $value;
         }
-
         $whereString = implode(' AND ', $whereArray);
 
         $sql = "DELETE FROM $entity WHERE $whereString";
-
         $statement = self::$pdo->prepare("$sql");
 
-        return $statement->execute($params);
+        $statement->execute($params);
+
+        return $statement->rowCount();
     }
 
     // This function delete all the table
@@ -131,7 +141,12 @@ class PdoDatabase implements StorageInterface
         $sql = "DELETE FROM $entity";
         $statement = self::$pdo->prepare("$sql");
 
-        return $statement->execute();
+        $statement->execute();
+
+        if ($statement->rowCount() > 0) {
+            return true;
+        }
+        return false;
     }
 
     // This function search for all entity in table

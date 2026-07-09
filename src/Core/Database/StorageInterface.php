@@ -10,9 +10,9 @@ interface StorageInterface
 {
     public function open();
     public function insert(string $entity, array $data): int|false;
-    public function delete(string $entity, array $data): bool;
+    public function delete(string $entity, array $data): int;
     public function deleteAll(string $table): bool;
     public function findAll(string $table): array;
-    public function update(string $table, int $id, array $data): bool;
+    public function update(string $table, int $id, array $data): int;
     public function queryCustom(string $sql, array $data): array;
 }

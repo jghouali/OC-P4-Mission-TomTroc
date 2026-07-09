@@ -18,7 +18,7 @@
                                 <div class="font-inter font-normal tracking-normal leading-none text-[12px] text-dark"><?= (preg_match('/ [0-9][0-9]:[0-9][0-9]/', array_last($messageArray['messages'])['sent_at'], $match)) ? $match[0] : '' ?></div>
                             </div>
                             <p class="font-inter font-normal tracking-normal leading-none text-[12px] text-grey">
-                                <?= mb_strimwidth($messageArray['profileObject']->securePrintText(array_last($messageArray['messages'])['content']), 0, 30, '...') ?>
+                                <?= $messageArray['profileObject']->securePrintText(array_last($messageArray['messages'])['content'], 30) ?>
                             </p>
                         </div>
                     </div>
@@ -76,6 +76,7 @@
                         <?php else: ?>
                             <input type="hidden" id="sendToInput" name="member">
                         <?php endif ?>
+                        <label for="message-content" class="sr-only">Message à envoyer</label>
                         <input type="text" name="content" id="message-content" class="w-[335px] sm:w-[628px] h-[49px] bg-white rounded-[6px] border-[1px] border-[#F0F0F0] placeholder:pl-[42px] pl-[42px]" placeholder="Tapez votre message ici">
                         <button type="submit" class="w-[335px] sm:w-[132px] h-[49px] font-inter font-semibold leading-none tracking-normal text-[16px] text-center text-white bg-primary duration-300 ease-in-out hover:bg-primary-hover rounded-[10px]">Envoyer</button>
                     </form>

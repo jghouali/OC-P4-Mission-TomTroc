@@ -10,6 +10,7 @@ use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Entity\MessageEntity;
 use Green\TomTroc\Enum\MessageStatusEnum;
 use PDO;
+use RuntimeException;
 
 class MessageRepository
 {
@@ -53,6 +54,19 @@ class MessageRepository
 
     public function insert(MessageEntity $message): MessageEntity|false
     {
+        $messageId = $message->getId();
+        if (is_int($messageId) && $messageId > 0) {
+            throw new RuntimeException('This message already inserted', 400);
+        }
+
+        if ($message->getFromMember()->getId() === null) {
+            throw new RuntimeException('FromMember Id is null', 400);
+        }
+
+        if ($message->getToMember()->getId() === null) {
+            throw new RuntimeException('ToMember Id is null', 400);
+        }
+
         $lastId = $this->dbManager->insert('messages', $message->toArray());
         if (is_int($lastId)) {
             $message->setId($lastId);
@@ -62,14 +76,52 @@ class MessageRepository
         return false;
     }
 
-    public function update(int $messageId, MessageEntity $message): bool
+    public function update(int $messageId, MessageEntity $message): MessageEntity|false
     {
-        return $this->dbManager->update('messages', $messageId, $message->toArray());
+        if ($message->getId() !== null && $message->getId() !== $messageId) {
+            throw new RuntimeException('messageId mismatch with messageId whithin the given MemberEntity', 400);
+        }
+
+        if ($message->getFromMember()->getId() === null) {
+            throw new RuntimeException('Null memberId in the given FromMember', 400);
+        }
+
+        if ($message->getToMember()->getId() === null) {
+            throw new RuntimeException('Null memberId in the given ToMember', 400);
+        }
+
+        if (!$this->findOneById($messageId)) {
+            throw new RuntimeException('messageId doesnt exist', 400);
+        }
+        $result = $this->dbManager->update('messages', $messageId, $message->toArray());
+
+        if ($result === 1) {
+            $message->setId($messageId);
+            return $message;
+        } elseif ($result === 0) {
+            return false;
+        }
+        throw new RuntimeException('More than 1 entry updated', 500);
     }
 
     public function delete(MessageEntity $message): bool
     {
-        return $this->dbManager->delete('messages', $message->toArray());
+        if ($message->getId() === null) {
+            throw new RuntimeException('messageId is null', 400);
+        }
+
+        if (!$this->findOneById($message->getId())) {
+            throw new RuntimeException('messageId doesnt exist', 400);
+        }
+
+        $result = $this->dbManager->delete('messages', $message->toArray());
+
+        if ($result === 1) {
+            return true;
+        } elseif ($result === 0) {
+            return false;
+        }
+        throw new RuntimeException('More than 1 entry deleted', 500);
     }
 
     public function deleteAll(): bool
@@ -90,14 +142,10 @@ class MessageRepository
             ]
         );
 
-        if ($result !== []) {
-            $message = $this->oneToMessage($result[0]);
-            $message->setId($result[0]['message_id']);
-        } else {
-            $message = null;
+        if (count($result) === 1) {
+            return $this->oneToMessage($result[0]);
         }
-
-        return $message;
+        return null;
     }
 
     public function findAll(): array

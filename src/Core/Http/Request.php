@@ -13,28 +13,50 @@ class Request
     protected string $httpLocation;
     protected array $httpParameters;
 
-    public function __construct(string $stringRequest, ?array $postData = null)
+    public function __construct(string $stringRequest)
     {
         $allowedMethods = [
             'GET',
             'POST',
         ];
 
-        $httpMethod = explode(' ', $stringRequest, 2)[0];
-        $httpUri = explode(' ', $stringRequest, 2)[1];
+        $explodedRequest = explode(' ', $stringRequest);
+        if (count($explodedRequest) !== 2) {
+            throw new RuntimeException('Malformed Request', 400);
+        }
 
+        $httpMethod = $explodedRequest[0];
         if (!in_array($httpMethod, $allowedMethods, true)) {
-            throw new RuntimeException("Method '$httpMethod' not allowed for request '$httpUri'", 405);
+            throw new RuntimeException("Method '$httpMethod' not allowed", 405);
         }
 
-        if ($httpMethod === 'POST' && $postData === null) {
-            throw new RuntimeException('Can\'t process \'POST\' request whitout \'POST\' data.', 400);
+        $httpUri = $explodedRequest[1];
+
+        if ($httpMethod === 'POST') {
+            if (!isset($_POST) || $_POST === null || $_POST === [] || $_POST === '') {
+                throw new RuntimeException(
+                    'Can\'t process \'POST\' request whitout \'POST\' data.',
+                    400
+                );
+            }
         }
 
-        $httpLocation = explode('?', $httpUri)[0];
+        $explodedUri = explode('?', $httpUri);
+        if (count($explodedUri) !== 2 && count($explodedUri) !== 1) {
+            throw new RuntimeException('Malformed Request', 400);
+        }
 
-        if ($httpMethod === 'GET') {
-            $param = substr(str_replace($httpLocation, '', $httpUri), 1);
+        $httpLocation = $explodedUri[0];
+        if (substr($httpLocation, 0, 1) !== '/') {
+            throw new RuntimeException('Http Location doesnt start with \'/\'', 400);
+        }
+
+        if ($httpMethod === 'GET' && count($explodedUri) === 2) {
+            $param = $explodedUri[1];
+
+            if (!preg_match('/^[a-zA-Z0-9\-\_]+=[a-zA-Z0-9\-\_]+(?:&[a-zA-Z0-9\-\_]+=[a-zA-Z0-9\-\_]+)*$/', $param)) {
+                throw new RuntimeException('Malformed Parameters', 400);
+            }
 
             $httpParameters = [];
             if (preg_match('/\w=/', $param)) {
@@ -50,7 +72,7 @@ class Request
                 }
             }
         } else {
-            $httpParameters = array_merge($postData, $_FILES);
+            $httpParameters = array_merge($_POST, $_FILES);
         }
 
         $this->httpMethod = $httpMethod;
@@ -74,10 +96,12 @@ class Request
         if ($inArray) {
             return $this->httpParameters;
         } else {
+            $arrayContent = [];
             $stringContent = '';
             foreach ($this->httpParameters as $param => $value) {
-                $stringContent = "$stringContent" . "$param=$value";
+                $arrayContent[] = $param . '=' . $value;
             }
+            $stringContent = implode('&', $arrayContent);
             return $stringContent;
         }
     }

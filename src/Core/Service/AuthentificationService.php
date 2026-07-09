@@ -8,6 +8,7 @@ use Green\TomTroc\Core\Lib\Locales;
 use Green\TomTroc\Core\Settings\Settings;
 use Green\TomTroc\Entity\MemberEntity;
 use Green\TomTroc\Enum\MemberStatusEnum;
+use Green\TomTroc\Enum\ValidatorEnum;
 use Green\TomTroc\Repository\MemberRepository;
 use RuntimeException;
 
@@ -39,14 +40,51 @@ class AuthentificationService
 
     public function generatePasswordHash(string $password): string
     {
-        return password_hash(
-            $password,
-            $this->passwordHashAlgorithm
+        if (ValidatorService::validateField('password', $password, ValidatorEnum::clearPassword)) {
+            return password_hash(
+                $password,
+                $this->passwordHashAlgorithm
+            );
+        }
+        throw new RuntimeException(
+            'Password must contain between 12 and 72 character and' .
+                ' at least one [a-z], one [0-9], one [!@#$%^&*()_\-+=.?]'
+        );
+    }
+
+    public function emailAlreadyRegistered(string $email): bool
+    {
+        if ($this->memberRepository->findOneByEmail($email) === null) {
+            return false;
+        }
+        return true;
+    }
+
+    public function usernameAlreadyRegistered(string $username): bool
+    {
+        if ($this->memberRepository->findOneByUsername($username) === null) {
+            return false;
+        }
+        return true;
+    }
+
+    public function memberExistAndValidated(string $email): bool
+    {
+        return (
+            $this->memberRepository
+            ->findOneByEmail($email)
+            ->getStatus() === MemberStatusEnum::VALIDATED
         );
     }
 
     public function register(string $username, string $email, string $password, string $avatar_path): MemberEntity|false
     {
+        if ($this->memberRepository->findOneByEmail($email) !== null) {
+            throw new RuntimeException('email already registered', 400);
+        }
+        if ($this->memberRepository->findOneByUsername($username) !== null) {
+            throw new RuntimeException('username already registered', 400);
+        }
         $passwordHash = $this->generatePasswordHash($password);
 
         $member = new MemberEntity(
@@ -66,22 +104,21 @@ class AuthentificationService
     {
         $member = $this->memberRepository->findOneByEmail($email);
 
-        if ($member === null) {
-            return false;
-        }
+        if ($member !== null) {
+            $hash = $member->getPasswordHash();
 
-        $hash = $member->getPasswordHash();
-
-        if (is_string($hash)) {
-            if (password_verify($password, $hash)) {
-                $_SESSION['id'] = $member->getId();
-                $_SESSION['avatarPath'] = $member->getAvatarPath();
-                $_SESSION['username'] = $member->getUserName();
-                return true;
+            if (is_string($hash)) {
+                if (password_verify($password, $hash)) {
+                    $_SESSION['id'] = $member->getId();
+                    $_SESSION['avatarPath'] = $member->getAvatarPath();
+                    $_SESSION['username'] = $member->getUserName();
+                    return true;
+                }
+                return false;
             }
-            return false;
+            throw new RuntimeException('failed to retrieve hashPassword', 500);
         }
-        throw new RuntimeException('This email is not registered');
+        return false;
     }
 
     public function logout(): bool
@@ -89,7 +126,9 @@ class AuthentificationService
         unset($_SESSION['id']);
         unset($_SESSION['avatarPath']);
         unset($_SESSION['username']);
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         return true;
     }
 }
