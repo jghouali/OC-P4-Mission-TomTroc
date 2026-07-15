@@ -8,7 +8,7 @@ use PDO;
 use RuntimeException;
 
 // This class implement StorageInterface as it will be possible
-// to change it with every class implement StorageInterface,
+// to change it with every class that implement StorageInterface,
 // like Json, API, etc...
 // It is very important to respect property Naming as camelCase
 // and database columns exactly the same name but snake_case
@@ -59,20 +59,25 @@ class PdoDatabase implements StorageInterface
         $columns = [];
         $valuesArray = [];
 
-        // pop the entity_id since we insert()
+        // pop the last row entity_id since we insert()
         array_pop($data);
 
         foreach ($data as $column => $value) {
+            // prefix with ':' the column
             $valuesArray[] = ":$column";
+            // put the column in columns
             $columns[] = $column;
+            // put the value in params
             $params[":$column"] = $value;
         }
 
+        // imlode it with ', '
         $columns = implode(', ', $columns);
         $valuesString = implode(', ', $valuesArray);
 
         $sql = "INSERT INTO $entity ($columns) VALUES ($valuesString)";
 
+        // we can now safely prepare the statement
         $statement = self::$pdo->prepare("$sql");
 
         $statement->execute($params);
@@ -135,7 +140,7 @@ class PdoDatabase implements StorageInterface
         return $statement->rowCount();
     }
 
-    // This function delete all the table
+    // Danger This function delete all the table
     public function deleteAll(string $entity): bool
     {
         $sql = "DELETE FROM $entity";

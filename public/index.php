@@ -37,7 +37,7 @@ $router->register('GET', '/my-box', Settings::getMessageController()->showMyBox(
 $router->register('POST', '/my-box', Settings::getMessageController()->sendMessage(...));
 $router->register('GET', '/message-read', Settings::getMessageController()->setReadtoAllMessageByUser(...));
 
-$request = new Request($_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI'], $_POST);
+$request = new Request($_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
 
 $content = $router->resolve($request);
 
