@@ -23,6 +23,7 @@ class Router
         $this->errorController = $errorController;
         $this->routes = $routes;
 
+        // if no defaut route is set, set the default route to return the request URI
         if (!isset($this->routes['default'])) {
             $this->routes['default'] = function ($location, $params) {
                 $stringContent = "$location?";
@@ -34,6 +35,11 @@ class Router
         }
     }
 
+    public function getRoutes(): array
+    {
+        return $this->routes;
+    }
+
     public function register(string $httpMethod, string $route, Closure $function)
     {
         $allowedMethods = [
@@ -41,10 +47,19 @@ class Router
             'POST',
         ];
 
+        // throw an exception with Method not in the whitelist
         if (!in_array($httpMethod, $allowedMethods, true)) {
             throw new RuntimeException(
-                "Trying to register an invalid Http Method : \'$httpMethod\'<br>Allowed method : " .
+                "Trying to register an invalid Http Method : '$httpMethod'<br>Allowed method : " .
                     implode(', ', $allowedMethods) . '<br>',
+                400
+            );
+        }
+
+        // throw an exception if location don't start with a '/' or if contain unwanted character '
+        if (!preg_match('/^\/[\-\_a-zA-Z0-9]+(?:\/[\-\_a-zA-Z0-9]+)*\/?$/', $route) && $route != '/') {
+            throw new RuntimeException(
+                'Trying to register an invalid Http Location',
                 400
             );
         }
@@ -60,9 +75,10 @@ class Router
 
             if (key_exists($location, $this->routes)) {
                 if (key_exists($method, $this->routes[$location])) {
+                    // use ReflectionFunction to inspect if needed parameters is present in the request
                     $reflexiveFunction = new ReflectionFunction($this->routes[$location][$method]);
-                    $reflexiveParameters = $reflexiveFunction->getParameters();
 
+                    $reflexiveParameters = $reflexiveFunction->getParameters();
                     $givenParameters = $request->getHttpParameters(true);
 
                     $args = [];
@@ -74,6 +90,7 @@ class Router
                             if ($parameter->isOptional()) {
                                 continue;
                             } else {
+                                // if have default value fill it
                                 if ($parameter->isDefaultValueAvailable()) {
                                     $args[$parameterName] = $parameter->getDefaultValue();
                                 } else {
@@ -83,11 +100,14 @@ class Router
                         }
                     }
 
+                    // spray args in the closure, execute it and return the result in $content
                     $content = $this->routes[$location][$method](...$args);
 
+                    // if is a string return a new Response with code 200
                     if (is_string($content)) {
                         return new Response($content, 200);
                     }
+                    // it is already a Response so return it
                     return $content;
                 } else {
                     throw new RuntimeException("Method '$method' Not Allowed on route '$location'", 405);
@@ -96,6 +116,7 @@ class Router
                 throw new RuntimeException('Page ' . $request->getHttpLocation() . ' not found', 404);
             }
         } catch (Exception $exception) {
+            // if an exception is thrown throw to the errorController
             $response = $this->errorController->handleException($exception);
             return $response;
         }
