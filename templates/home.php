@@ -6,7 +6,7 @@
 ?>
 <main class="flex-1 scrollbar-gutter-stable">
     <section class="bg-light-grey2 px-[20px] pb-[48px] sm:pb-[101px] sm:pt-[80px]">
-        <div class="flex flex-col-reverse sm:flex-row justify-center sm:gap-[108px] sm:justify-between sm:pl-[270px] sm:pr-[290px]">
+        <div class="flex flex-col-reverse sm:flex-row justify-center sm:gap-[108px] sm:justify-between lg:pl-[270px] lg:pr-[290px]">
 
             <div class="max-w-[335px] sm:w-[329px] mt-[32px] sm:mt-[54px] self-center">
                 <h1 class="font-playfair font-normal tracking-normal leading-[1.3] text-[30px] sm:text-[36px] text-black pb-[16px]">Rejoignez nos lecteurs passionnés</h1>

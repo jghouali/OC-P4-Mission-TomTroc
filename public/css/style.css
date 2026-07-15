@@ -417,15 +417,15 @@
     --font-playfair: 'Playfair Display', 'Serif';
     --font-inter: 'Inter';
     --color-dark: rgba(41, 41, 41, 1);
-    --color-primary: #00804D;
+    --color-primary: rgba(0, 172, 102, 1);
     --color-primary-hover: rgba(0, 109, 65, 1);
-    --color-grey: #6E6E6E;
+    --color-grey: rgba(166, 166, 166, 1);
     --color-light-grey: rgba(240, 240, 240, 1);
     --color-light-grey2: rgba(245, 243, 239, 1);
     --color-background-light: rgba(250, 249, 247, 1);
     --color-greyblue: rgba(237, 242, 246, 1);
-    --color-red: #BC5757;
-    --color-greendispo: #348362;
+    --color-red: rgba(197, 109, 109, 1);
+    --color-greendispo: rgba(109, 197, 161, 1);
     --color-reddanger: rgba(203, 45, 45, 1);
   }
 }
@@ -3521,11 +3521,6 @@
       padding-right: 263px;
     }
   }
-  .sm\:pr-\[290px\] {
-    @media (width >= 40rem) {
-      padding-right: 290px;
-    }
-  }
   .sm\:pb-\[0px\] {
     @media (width >= 40rem) {
       padding-bottom: 0px;
@@ -3651,11 +3646,6 @@
       padding-left: 263px;
     }
   }
-  .sm\:pl-\[270px\] {
-    @media (width >= 40rem) {
-      padding-left: 270px;
-    }
-  }
   .sm\:text-\[10px\] {
     @media (width >= 40rem) {
       font-size: 10px;
@@ -3759,6 +3749,16 @@
   .lg\:px-\[150px\] {
     @media (width >= 64rem) {
       padding-inline: 150px;
+    }
+  }
+  .lg\:pr-\[290px\] {
+    @media (width >= 64rem) {
+      padding-right: 290px;
+    }
+  }
+  .lg\:pl-\[270px\] {
+    @media (width >= 64rem) {
+      padding-left: 270px;
     }
   }
   .xl\:mt-\[80px\] {
